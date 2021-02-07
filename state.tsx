@@ -92,24 +92,26 @@ export const initialData: Data = {
 
 // Load local saved data
 
-const local = JSON.parse(localStorage.getItem("play_vars") || "{}")
+if (typeof window !== "undefined") {
+  const local = JSON.parse(localStorage.getItem("play_vars") || "{}")
 
-if (local.version === initialData.version) {
-  initialData.properties.clear()
-  for (let property of local.properties) {
-    property.transforms.forEach((transform: ITransform) => {
-      const source = Transforms.getTransform(transform.name)
-      transform.fn = source.fn as any
-    })
-    initialData.properties.set(property.id, property)
-  }
-  initialData.variables.clear()
-  for (let variable of local.variables) {
-    variable.transforms.forEach((transform: ITransform) => {
-      const source = Transforms.getTransform(transform.name)
-      transform.fn = source.fn as any
-    })
-    initialData.variables.set(variable.id, variable)
+  if (local.version === initialData.version) {
+    initialData.properties.clear()
+    for (let property of local.properties) {
+      property.transforms.forEach((transform: ITransform) => {
+        const source = Transforms.getTransform(transform.name)
+        transform.fn = source.fn as any
+      })
+      initialData.properties.set(property.id, property)
+    }
+    initialData.variables.clear()
+    for (let variable of local.variables) {
+      variable.transforms.forEach((transform: ITransform) => {
+        const source = Transforms.getTransform(transform.name)
+        transform.fn = source.fn as any
+      })
+      initialData.variables.set(variable.id, variable)
+    }
   }
 }
 

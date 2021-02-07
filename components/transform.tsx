@@ -1,4 +1,4 @@
-import * as System from "lib"
+import { System } from "lib"
 import styled from "styled-components"
 import state from "state"
 import { ArrowRight } from "react-feather"

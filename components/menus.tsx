@@ -1,6 +1,6 @@
 /* eslint-disable */
 import styled from "styled-components"
-import * as System from "lib/system"
+import { System } from "lib"
 import state, { useSelector } from "state"
 
 interface TransformMenuProps {

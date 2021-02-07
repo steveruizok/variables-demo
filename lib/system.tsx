@@ -1,5 +1,5 @@
-import { uniqueId } from "lodash"
-import { coerceValue } from "../utils"
+import uniqueId from "lodash/uniqueId"
+import { coerceValue } from "utils"
 import { TransformName } from "./transforms"
 
 export enum Type {
@@ -80,7 +80,7 @@ export class Natural {
   static setValue<T extends Type>(
     value: INatural,
     type: T,
-    next: ValueTypes[T],
+    next: ValueTypes[T]
   ) {
     return (value.values[type] = next)
   }
@@ -126,7 +126,7 @@ export class Enumerated {
 
   static setValue<K extends string, T extends IEnumerated<K>>(
     enumerated: T,
-    value: K,
+    value: K
   ) {
     enumerated.value = value
     return enumerated
@@ -169,7 +169,7 @@ export type ITransformOpts<I extends Type, O extends Type> = {
 }
 
 function createTransform<I extends Type, O extends Type>(
-  opts: ITransformOpts<I, O>,
+  opts: ITransformOpts<I, O>
 ): ITransform<I, O> {
   const { id = uniqueId(), args = [], ...rest } = opts
   return { id, args, ...rest }
@@ -182,10 +182,10 @@ export class Transform {
 
   static transformValue<I extends Type, O extends Type>(
     transform: ITransform<I, O>,
-    value: ValueTypes[I],
+    value: ValueTypes[I]
   ) {
     const vals = transform.args.map((arg) =>
-      "type" in arg ? Enumerated.getValue(arg) : Property.getValue(arg),
+      "type" in arg ? Enumerated.getValue(arg) : Property.getValue(arg)
     )
     transform.returnedValue = transform.fn(value, ...vals)
     return transform.returnedValue
@@ -262,7 +262,7 @@ export class Property {
   static insertTransform(
     property: IProperty,
     transform: ITransform<Type, Type>,
-    index: number,
+    index: number
   ) {
     property.transforms.splice(index, 0, transform)
     return property
@@ -270,7 +270,7 @@ export class Property {
 
   static removeTransform(
     property: IProperty,
-    transform: ITransform<Type, Type>,
+    transform: ITransform<Type, Type>
   ) {
     property.transforms.splice(property.transforms.indexOf(transform), 1)
     return property
@@ -279,7 +279,7 @@ export class Property {
   static moveTransform(
     property: IProperty,
     transform: ITransform<Type, Type>,
-    index: number,
+    index: number
   ) {
     property.transforms.splice(property.transforms.indexOf(transform), 1)
     property.transforms.splice(index, 0, transform)

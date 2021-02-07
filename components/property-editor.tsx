@@ -1,6 +1,6 @@
 /* eslint-disable */
 import styled from "styled-components"
-import * as System from "lib"
+import { System } from "lib"
 import state from "state"
 import Transform from "./transform"
 import TransformPicker from "./transform-picker"

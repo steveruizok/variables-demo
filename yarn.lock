@@ -267,10 +267,10 @@
   resolved "https://registry.yarnpkg.com/@opentelemetry/context-base/-/context-base-0.14.0.tgz#c67fc20a4d891447ca1a855d7d70fa79a3533001"
   integrity sha512-sDOAZcYwynHFTbLo6n8kIbLiVF3a3BLkrmehJUyEbT9F+Smbi47kLGS2gG2g0fjBLR/Lr1InPD7kXL7FaTqEkw==
 
-"@state-designer/core@1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-1.4.1.tgz#7d44d1a1cda8b5ac0255b69ace9b09fe4cc4c69d"
-  integrity sha512-XuSMLFWjk5+L9jMHWb79J0PPpDb0UUBuSX+j7tWgAboR+TyZDUeNjSU5m4i3QSBErmKiwjq4nJp3ycjNutnqCw==
+"@state-designer/core@1.4.4":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-1.4.4.tgz#71efc1cab944cb31f775055e370a0383a20b3f63"
+  integrity sha512-tohSITnx2I4xP6UlLKSbLgnVqQYWcUxTZ5NM2Kp6Kd3TIWFyb8KmdKTGqka1ItlqYb1odZe8eUvvhcPBKCfdEQ==
   dependencies:
     immer "^8.0.1"
     lodash "^4.17.20"
@@ -278,13 +278,14 @@
     object.entries "^1.1.1"
     object.fromentries "^2.0.2"
 
-"@state-designer/react@^1.4.3":
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/@state-designer/react/-/react-1.4.3.tgz#5766998232b2055dc925f0720f02a0a667017980"
-  integrity sha512-Wv7IENk4E10hZ5zhOy12uM0QpP7Fy5AXiVDkeKUGw7P7hKjRSYdu9PK0IFOPJyHoV6XwF6cUB8WkhmmQDt4kDg==
+"@state-designer/react@^1.4.4":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@state-designer/react/-/react-1.4.4.tgz#3a58403e5cdb3fffc3418208c744e97eca81b613"
+  integrity sha512-4I9F4ekagIZao+6suHok5eoQrUhL95/nFbO9CFAFhcJqhvBY0OLaurMdYwKd4X/8hOBrz/sihe0rb1PaRVqNhw==
   dependencies:
-    "@state-designer/core" "1.4.1"
+    "@state-designer/core" "1.4.4"
     lodash "^4.17.20"
+    lodash-es "^4.17.20"
 
 "@types/hoist-non-react-statics@*":
   version "3.3.1"

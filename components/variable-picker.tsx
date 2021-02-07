@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import * as System from "lib"
+import { System } from "lib"
 import * as React from "react"
 import { useSelector } from "state"
 

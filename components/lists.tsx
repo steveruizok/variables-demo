@@ -1,4 +1,4 @@
-import * as System from "lib/system"
+import { System } from "lib"
 import * as React from "react"
 import styled from "styled-components"
 import { useStateDesigner } from "@state-designer/react"

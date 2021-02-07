@@ -1,5 +1,5 @@
-import * as System from "lib"
 import * as React from "react"
+import { System } from "lib"
 import { Type, Hash, CheckSquare, List } from "react-feather"
 
 interface TypeIconProps {

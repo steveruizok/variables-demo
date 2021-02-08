@@ -6,6 +6,7 @@ export const Panel = styled.div`
   overflow: hidden;
   height: fit-content;
   padding-bottom: var(--spacing-3);
+  background-color: var(--color-panel);
 `
 
 export const PanelBody = styled.div`
@@ -15,11 +16,11 @@ export const PanelBody = styled.div`
 `
 
 export const PanelHeader = styled.div`
+  background-color: var(--color-panel);
   padding: var(--spacing-1);
   border-bottom: 1px solid var(--color-border);
   height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--color-background);
 `

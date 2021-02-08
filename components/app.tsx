@@ -4,13 +4,18 @@ import styled from "styled-components"
 import PropertyPanel from "components/property-panel"
 import PreviewPanel from "components/preview-panel"
 import ContentPanel from "components/content-panel"
+import { Sun } from "react-feather"
+import state from "state"
 
 export default function App() {
   return (
     <AppContainer>
-      <p>
+      <Header>
         <a href="https://github.com/steveruizok/variables-demo">Github</a>
-      </p>
+        <button onClick={() => state.send("TOGGLED_THEME")}>
+          <Sun size={16} />
+        </button>
+      </Header>
       <PanelsContainer>
         <PreviewPanel />
         <Panels>
@@ -35,6 +40,13 @@ const PanelsContainer = styled.div`
   display: grid;
   grid-auto-columns: 1fr;
   grid-gap: var(--spacing-4);
+`
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-1) 0 var(--spacing-3) 0;
 `
 
 const AppContainer = styled.div`
@@ -65,15 +77,20 @@ const AppContainer = styled.div`
     border-top: 1px solid var(--color-border);
   }
 
+  a {
+    color: var(--color-text);
+  }
+
   input,
   select,
   button,
   textarea {
+    color: var(--color-text);
     height: var(--height-input);
     font-family: sans-serif;
     line-height: 1.3;
     font-size: var(--size-2);
-    border: 1px solid var(--color-text);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-2);
     min-height: var(--height-input);
   }
@@ -81,6 +98,10 @@ const AppContainer = styled.div`
   button,
   select {
     cursor: pointer;
+    background-color: var(--color-input);
+    &:active {
+      background-color: var(--color-active-background);
+    }
   }
 
   pre {

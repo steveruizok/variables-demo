@@ -17,13 +17,15 @@ import { coerceValue } from "./utils"
 
 export type Data = {
   version: number
+  theme: "dark" | "light"
   selected?: System.ScopedReference
   properties: System.Properties
   variables: System.Variables
 }
 
 export const initialData: Data = {
-  version: 32,
+  version: 34,
+  theme: "dark",
   selected: undefined,
   properties: new Map([
     [
@@ -144,14 +146,16 @@ if (typeof window !== "undefined") {
 
     System.tables.variables = variables
     System.tables.properties = properties
-
+    initialData.theme = local.theme
     initialData.selected = local.selected
   }
 }
 
 const state = createState({
   data: initialData,
+  onEnter: "setTheme",
   on: {
+    TOGGLED_THEME: ["toggleTheme", "setTheme"],
     RESTORED_PROPERTY: "restoreProperty",
     RESTORED_VARAIBLE: "restoreVariable",
     SELECTED: "select",
@@ -170,6 +174,16 @@ const state = createState({
     DELETED_VARIABLE: "deleteVariable",
   },
   actions: {
+    setTheme(data) {
+      if (data.theme === "dark") {
+        document.body.classList.toggle("dark", true)
+      } else {
+        document.body.classList.toggle("dark", false)
+      }
+    },
+    toggleTheme(data) {
+      data.theme = data.theme === "dark" ? "light" : "dark"
+    },
     select(data, payload: { selection: IProperty | IVariable }) {
       const { selection } = payload
       data.selected = {
@@ -386,6 +400,7 @@ state.onUpdate((update: typeof state) => {
   localStorage.setItem(
     "play_vars",
     JSON.stringify({
+      theme: update.data.theme,
       selected: update.data.selected,
       version: update.data.version,
       properties: update.values.properties,

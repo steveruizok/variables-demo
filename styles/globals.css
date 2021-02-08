@@ -15,18 +15,42 @@
   --radius-3: 8px;
   --color-text: black;
   --color-background: white;
+  --color-panel: #fcfcfc;
   --color-border: rgba(144, 144, 144, 0.5);
   --color-active: blue;
   --color-active-background: rgb(226, 231, 255);
   --color-transformed: rgb(77, 131, 231);
   --color-variable: magenta;
-  --color-input: #fcfcfc;
+  --color-input: #f3f3f3;
   --color-shade-0: #767676;
   --color-shadow-0: rgba(0, 0, 0, 0.05);
   --color-shadow-1: rgba(255, 255, 255, 0.2);
   --color-error-0: rgba(255, 100, 100, 0.5);
   --color-error-1: rgba(255, 100, 100, 0.25);
   --height-input: 40px;
+}
+
+.dark {
+  --color-text: rgb(235, 235, 235);
+  --color-background: rgb(20, 20, 20);
+  --color-panel: rgb(32, 29, 36);
+  --color-border: rgba(206, 206, 206, 0.5);
+  --color-active: rgb(111, 111, 236);
+  --color-active-background: rgb(88, 89, 97);
+  --color-transformed: rgb(77, 131, 231);
+  --color-variable: magenta;
+  --color-input: #323038;
+  --color-shade-0: #767676;
+  --color-shadow-0: rgba(0, 0, 0, 0.05);
+  --color-shadow-1: rgba(255, 255, 255, 0.2);
+  --color-error-0: rgba(255, 100, 100, 0.5);
+  --color-error-1: rgba(255, 100, 100, 0.25);
+  --height-input: 40px;
+}
+
+body {
+  color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 * {

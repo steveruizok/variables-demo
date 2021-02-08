@@ -50,11 +50,6 @@ export function VariablesList() {
           </ul>
         </li>
       ))}
-      <li>
-        <AddNewButton onClick={() => state.send("CREATED_VARIABLE")}>
-          Create New Variable
-        </AddNewButton>
-      </li>
     </ul>
   )
 }
@@ -117,9 +112,5 @@ const StyledButton = styled.button<{
       ? "var(--color-error-0)"
       : isActive
       ? "var(--color-active-background)"
-      : "var(--color-input)"} !important;
-`
-
-const AddNewButton = styled.button`
-  width: 100%;
+      : "var(--color-input)"};
 `

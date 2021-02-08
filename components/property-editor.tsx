@@ -15,13 +15,10 @@ interface PropertyEditorProps {
 
 export default function PropertyEditor({ property }: PropertyEditorProps) {
   const isVariable = property.__type === "variable"
-  const hasTransforms = property.transforms.length > 0
-
-  // return (
-  //   <pre>
-  //     <code>{JSON.stringify(property, null, 2)}</code>
-  //   </pre>
-  // )
+  const hasInitialVariable = !!property.initial.variable
+  const initialType = System.Initial.getType(property.initial)
+  const initialValue = System.Initial.getValue(property.initial)
+  const addTransformType = System.Property.getTransformedType(property)
 
   return (
     <PanelBody>
@@ -34,92 +31,6 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
           onChange={(name) => state.send("CHANGED_NAME", { property, name })}
         />
       </InputsContainer>
-      <TransformedValueEditor property={property} />
-      <Pre source={property} />
-    </PanelBody>
-  )
-}
-
-const TransformsList = styled.div``
-
-const InputsContainer = styled.div`
-  border: 1px solid var(--color-border);
-  background-color: var(--color-input);
-  border-radius: var(--radius-2);
-  grid-auto-columns: 1fr;
-`
-
-// function NaturalValueEditor({ property }: { property: System.IProperty }) {
-//   const hasInitialVariable = !!property.initial.variable
-//   const initialType = System.Initial.getType(property.initial)
-//   const initialValue = System.Initial.getValue(property.initial)
-//   const addTransformType = System.Property.getTransformedType(property)
-
-//   return (
-//     <>
-//       <InputsContainer>
-//         <EnumInput
-//           label="Type"
-//           disabled={!!property.initial.variable}
-//           options={Object.values(System.Type)}
-//           value={
-//             property.initial.variable
-//               ? System.Property.getType(
-//                   System.variables.get(property.initial.variable)!
-//                 )
-//               : initialType
-//           }
-//           onChange={(type) =>
-//             state.send("CHANGED_INITIAL_TYPE", {
-//               property,
-//               type,
-//             })
-//           }
-//         />
-//         <PropertyInput
-//           label="Value"
-//           disabled={hasInitialVariable}
-//           value={coerceValue(initialType, initialValue)}
-//           onChange={(value) =>
-//             state.send("CHANGED_INITIAL_VALUE", {
-//               property,
-//               value,
-//             })
-//           }
-//           variable={property.initial.variable}
-//           onVariableChange={(variable) =>
-//             state.send("SELECTED_VARIABLE", {
-//               property,
-//               variable,
-//             })
-//           }
-//         />
-//       </InputsContainer>
-//       <TransformPicker
-//         inputType={addTransformType}
-//         onSelect={(name) =>
-//           state.send("ADDED_TRANSFORM", {
-//             property,
-//             name,
-//           })
-//         }
-//       />
-//     </>
-//   )
-// }
-
-function TransformedValueEditor({
-  property,
-}: {
-  property: System.IProperty | System.IVariable
-}) {
-  const hasInitialVariable = !!property.initial.variable
-  const initialType = System.Initial.getType(property.initial)
-  const initialValue = System.Initial.getValue(property.initial)
-  const addTransformType = System.Property.getTransformedType(property)
-
-  return (
-    <>
       <h3>Initial Value</h3>
       <InputsContainer>
         <EnumInput
@@ -151,11 +62,20 @@ function TransformedValueEditor({
             })
           }
           variable={property.initial.variable}
-          excludeVariable={{ scope: property.scope, id: property.id }}
+          excludeVariable={{
+            __type: "variable",
+            scope: property.scope,
+            id: property.id,
+          }}
           onVariableChange={(variable) =>
             state.send("SELECTED_VARIABLE", {
               property,
               variable,
+            })
+          }
+          onVariableDetatch={() =>
+            state.send("DETACHED_VARIABLE", {
+              property,
             })
           }
         />
@@ -182,7 +102,11 @@ function TransformedValueEditor({
                   property={property}
                   status={status}
                   index={index}
-                  excludeVariable={{ scope: property.scope, id: property.id }}
+                  excludeVariable={{
+                    __type: "variable",
+                    scope: property.scope,
+                    id: property.id,
+                  }}
                 />
               )
             })}
@@ -209,6 +133,16 @@ function TransformedValueEditor({
       </InputsContainer>
       {property.error && <p>Error: {property.error.message}</p>}
       {property.warning && <p>Warning: {property.warning.message}</p>}
-    </>
+      <Pre source={property} />
+    </PanelBody>
   )
 }
+
+const TransformsList = styled.div``
+
+const InputsContainer = styled.div`
+  border: 1px solid var(--color-border);
+  background-color: var(--color-input);
+  border-radius: var(--radius-2);
+  grid-auto-columns: 1fr;
+`

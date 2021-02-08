@@ -19,6 +19,7 @@ interface PropertyInputProps<T> extends InputProps<T> {
   showVariables?: boolean
   excludeVariable?: System.ScopedReference
   onVariableChange?: (variable?: System.Variable) => void
+  onVariableDetatch?: () => void
 }
 
 export function PropertyInput({
@@ -30,6 +31,7 @@ export function PropertyInput({
   disabled,
   showVariables = true,
   onVariableChange,
+  onVariableDetatch,
   excludeVariable,
   ...rest
 }: PropertyInputProps<string | number | boolean>) {
@@ -68,6 +70,7 @@ export function PropertyInput({
           id={variable?.id}
           exclude={excludeVariable.id}
           onChange={onVariableChange}
+          onDetatch={onVariableDetatch}
         />
       )}
     </InputContainer>

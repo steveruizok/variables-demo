@@ -8,6 +8,7 @@ interface VariablePickerProps {
   id?: string
   scope?: string
   exclude?: string
+  onDetatch?: () => void
   onChange?: (variable?: System.IVariable) => void
 }
 
@@ -17,6 +18,7 @@ export default function VariablePicker({
   scope = "global",
   exclude,
   onChange,
+  onDetatch,
 }: VariablePickerProps) {
   const variables = useSelector((state) => state.data.variables)
   const variablesArray = Array.from(variables.get(scope).values()).filter(
@@ -28,13 +30,19 @@ export default function VariablePicker({
       <select
         value={id || ""}
         onChange={({ currentTarget: { value } }) => {
+          if (value === "Detatch") {
+            onDetatch()
+            return
+          }
+
           const variable = value
-            ? System.getVariable({ scope, id: value })
+            ? System.getVariable({ __type: "variable", scope, id: value })
             : undefined
           onChange?.(variable)
         }}
       >
-        <option value={""}>None</option>
+        <option value={""}>{id ? "Remove" : "None"}</option>
+        {id && <option>Detatch</option>}
         {(type
           ? variablesArray.filter((v) => System.Property.getType(v) === type)
           : variablesArray

@@ -31,6 +31,7 @@ export const tables = {
 }
 
 export interface ScopedReference {
+  __type: "variable" | "property"
   scope: string
   id: string
 }
@@ -96,8 +97,15 @@ export class Initial {
     return (value.values[type] = next)
   }
 
-  static setVariable(value: IInitial, variable?: ScopedReference) {
-    value.variable = variable
+  static setVariable(value: IInitial, reference?: ScopedReference) {
+    value.variable = reference
+  }
+
+  static detatchVariable(value: IInitial) {
+    const variable = getVariable(value.variable)
+    const v = Variable.getValue(variable)
+    value.values[typeof v] = v
+    value.variable = undefined
   }
 }
 
@@ -232,6 +240,7 @@ export interface IProperty extends IPropertyBase {
 
 export interface IVariable extends IPropertyBase {
   __type: "variable"
+  assignments: Record<string, ScopedReference>
 }
 
 export class PropertyBase {
@@ -372,12 +381,20 @@ export class PropertyBase {
             current.value = Boolean(current.value)
             break
         }
+
+        if (typeof current.value === "number") {
+          if (!isFinite(current.value) || isNaN(current.value)) {
+            throw Error("Invalid number type, " + current.value + ".")
+          }
+        } else if (current.value === undefined || current.value === null) {
+          throw Error("No output value.")
+        }
       } catch (e) {
         property.error = {
-          message: "The transformed value is invalid: " + e.message,
+          message: "The transformed value was invalid. " + e.message,
           index: property.transforms.length - 1,
         }
-        current.value = property.initial.values[property.initial.type]
+        current.value = property.initial.values[property.type]
       }
     }
 
@@ -425,6 +442,7 @@ export class Variable extends PropertyBase {
     scope: string
     name: string
     initial: IInitial
+    assignments?: ScopedReference[]
     transforms?: ITransform<Type, Type>[]
   }): IVariable {
     const {
@@ -432,6 +450,7 @@ export class Variable extends PropertyBase {
       name,
       scope,
       transforms = [],
+      assignments = {},
       initial,
     } = opts
 
@@ -442,6 +461,7 @@ export class Variable extends PropertyBase {
       name,
       initial,
       transforms,
+      assignments,
     }
 
     if (!tables.variables.has(scope)) {
@@ -450,5 +470,32 @@ export class Variable extends PropertyBase {
 
     tables.variables.get(scope).set(id, variable)
     return variable
+  }
+
+  static addAssignment(variable: IVariable, target: IVariable | IProperty) {
+    variable.assignments[target.id] = {
+      __type: target.__type,
+      scope: target.scope,
+      id: target.id,
+    }
+  }
+
+  static removeAssignment(variable: IVariable, target: IVariable | IProperty) {
+    delete variable.assignments[target.id]
+  }
+
+  static delete(variable: IVariable) {
+    // Detatch all references
+    Object.values(variable.assignments).forEach(({ __type, scope, id }) => {
+      const assignment =
+        __type === "variable"
+          ? tables.variables.get(scope).get(id)
+          : tables.properties.get(scope).get(id)
+
+      Initial.detatchVariable(assignment.initial)
+    })
+
+    // Remove from tables
+    tables.variables.get(variable.scope).delete(variable.id)
   }
 }

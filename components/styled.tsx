@@ -22,10 +22,4 @@ export const PanelHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   background-color: var(--color-background);
-
-  & button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 `

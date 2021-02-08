@@ -17,13 +17,13 @@ import { coerceValue } from "./utils"
 
 export type Data = {
   version: number
-  selected?: System.ScopedReference & { type: "variable" | "property" }
+  selected?: System.ScopedReference
   properties: System.Properties
   variables: System.Variables
 }
 
 export const initialData: Data = {
-  version: 29,
+  version: 32,
   selected: undefined,
   properties: new Map([
     [
@@ -165,13 +165,15 @@ const state = createState({
     MOVED_TRANSFORM: "moveTransform",
     DUPLICATED_TRANSFORM: "duplicateTransform",
     SELECTED_VARIABLE: "selectInitialVariable",
+    DETACHED_VARIABLE: "detatchInitialVariable",
     CREATED_VARIABLE: "createVariable",
+    DELETED_VARIABLE: "deleteVariable",
   },
   actions: {
     select(data, payload: { selection: IProperty | IVariable }) {
       const { selection } = payload
       data.selected = {
-        type: selection.__type,
+        __type: selection.__type,
         scope: selection.scope,
         id: selection.id,
       }
@@ -256,17 +258,40 @@ const state = createState({
       Property.moveTransform(property, transform, index)
     },
     selectInitialVariable(
-      _,
+      data,
       payload: {
         property: IProperty | IVariable
         variable?: IVariable
       }
     ) {
       const { property, variable } = payload
+
+      if (variable) {
+        Variable.addAssignment(variable, property)
+      } else if (property.initial.variable) {
+        Variable.removeAssignment(
+          data.variables
+            .get(property.initial.variable.scope)
+            .get(property.initial.variable.id),
+          property
+        )
+      }
+
       Initial.setVariable(
         property.initial,
-        variable ? { scope: variable.scope, id: variable.id } : undefined
+        variable
+          ? { __type: "variable", scope: variable.scope, id: variable.id }
+          : undefined
       )
+    },
+    detatchInitialVariable(
+      _,
+      payload: {
+        property: IProperty | IVariable
+      }
+    ) {
+      const { property } = payload
+      Initial.detatchVariable(property.initial)
     },
     duplicateTransform(
       _,
@@ -294,10 +319,13 @@ const state = createState({
 
       data.variables.get(variable.scope).set(variable.id, variable)
       data.selected = {
-        type: "variable",
+        __type: "variable",
         scope: variable.scope,
         id: variable.id,
       }
+    },
+    deleteVariable(data, payload: { property: IVariable }) {
+      Variable.delete(payload.property)
     },
     restoreProperty(data, property: IProperty) {
       if (!data.properties.has(property.scope)) {
@@ -313,7 +341,7 @@ const state = createState({
 
       data.variables.get(variable.scope).set(variable.id, variable)
       data.selected = {
-        type: "variable",
+        __type: "variable",
         scope: variable.scope,
         id: variable.id,
       }
@@ -323,7 +351,7 @@ const state = createState({
     selected(data) {
       if (!data.selected) return undefined
 
-      return data.selected.type === "variable"
+      return data.selected.__type === "variable"
         ? data.variables.get(data.selected.scope).get(data.selected.id)
         : data.properties.get(data.selected.scope).get(data.selected.id)
     },

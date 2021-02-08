@@ -1,7 +1,7 @@
 import * as React from "react"
 import state from "state"
 import PropertyEditor from "./property-editor"
-import { Panel, PanelHeader } from "./styled"
+import { Panel, PanelBody, PanelHeader } from "./styled"
 import { useStateDesigner } from "@state-designer/react"
 import { X } from "react-feather"
 
@@ -11,7 +11,7 @@ export default function PropertyPanel() {
   } = useStateDesigner(state)
 
   return selected ? (
-    <Panel>
+    <Panel key={selected.id}>
       <PanelHeader>
         <h2>
           Selected {selected.__type === "variable" ? "Variable" : "Property"}
@@ -24,7 +24,7 @@ export default function PropertyPanel() {
     </Panel>
   ) : (
     <div>
-      <p>Select a property or variable.</p>
+      <PanelBody>Select a property or variable.</PanelBody>
     </div>
   )
 }

@@ -5,8 +5,7 @@ import {
   ValueTypes,
   Property,
   Transform,
-  Natural,
-  INatural,
+  Initial,
   Enumerated,
   IEnumerated,
   IProperty,
@@ -79,7 +78,6 @@ function transform<I extends Type, O extends Type>(options: {
   fn: TransformFn<I, O>
   args?: (IProperty | IEnumerated)[]
 }): ITransform<I, O> {
-  const { fn } = options
   return Transform.create(options)
 }
 
@@ -91,10 +89,9 @@ interface PropertyOptions<T extends Type> {
 
 function property<T extends Type>(options: PropertyOptions<T>) {
   const { name, type, value } = options
-  return Property.createProperty({
+  return Property.create({
     name,
-    finalTypes: [type],
-    initial: Natural.create({ type, value }),
+    initial: Initial.create({ type, value }),
   })
 }
 

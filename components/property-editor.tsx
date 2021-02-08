@@ -43,69 +43,69 @@ const InputsContainer = styled.div`
   grid-auto-columns: 1fr;
 `
 
-function NaturalValueEditor({ property }: { property: System.IProperty }) {
-  const hasInitialVariable = !!property.initial.variable
-  const initialType = System.Natural.getType(property.initial)
-  const initialValue = System.Natural.getValue(property.initial)
-  const addTransformType = System.Property.getTransformedType(property)
+// function NaturalValueEditor({ property }: { property: System.IProperty }) {
+//   const hasInitialVariable = !!property.initial.variable
+//   const initialType = System.Initial.getType(property.initial)
+//   const initialValue = System.Initial.getValue(property.initial)
+//   const addTransformType = System.Property.getTransformedType(property)
 
-  return (
-    <>
-      <InputsContainer>
-        <EnumInput
-          label="Type"
-          disabled={!!property.initial.variable}
-          options={Object.values(System.Type)}
-          value={
-            property.initial.variable
-              ? System.Property.getType(
-                  System.variables.get(property.initial.variable)!
-                )
-              : initialType
-          }
-          onChange={(type) =>
-            state.send("CHANGED_INITIAL_TYPE", {
-              property,
-              type,
-            })
-          }
-        />
-        <PropertyInput
-          label="Value"
-          disabled={hasInitialVariable}
-          value={coerceValue(initialType, initialValue)}
-          onChange={(value) =>
-            state.send("CHANGED_INITIAL_VALUE", {
-              property,
-              value,
-            })
-          }
-          variable={property.initial.variable}
-          onVariableChange={(variable) =>
-            state.send("SELECTED_VARIABLE", {
-              property,
-              variable,
-            })
-          }
-        />
-      </InputsContainer>
-      <TransformPicker
-        inputType={addTransformType}
-        onSelect={(name) =>
-          state.send("ADDED_TRANSFORM", {
-            property,
-            name,
-          })
-        }
-      />
-    </>
-  )
-}
+//   return (
+//     <>
+//       <InputsContainer>
+//         <EnumInput
+//           label="Type"
+//           disabled={!!property.initial.variable}
+//           options={Object.values(System.Type)}
+//           value={
+//             property.initial.variable
+//               ? System.Property.getType(
+//                   System.variables.get(property.initial.variable)!
+//                 )
+//               : initialType
+//           }
+//           onChange={(type) =>
+//             state.send("CHANGED_INITIAL_TYPE", {
+//               property,
+//               type,
+//             })
+//           }
+//         />
+//         <PropertyInput
+//           label="Value"
+//           disabled={hasInitialVariable}
+//           value={coerceValue(initialType, initialValue)}
+//           onChange={(value) =>
+//             state.send("CHANGED_INITIAL_VALUE", {
+//               property,
+//               value,
+//             })
+//           }
+//           variable={property.initial.variable}
+//           onVariableChange={(variable) =>
+//             state.send("SELECTED_VARIABLE", {
+//               property,
+//               variable,
+//             })
+//           }
+//         />
+//       </InputsContainer>
+//       <TransformPicker
+//         inputType={addTransformType}
+//         onSelect={(name) =>
+//           state.send("ADDED_TRANSFORM", {
+//             property,
+//             name,
+//           })
+//         }
+//       />
+//     </>
+//   )
+// }
 
 function TransformedValueEditor({ property }: { property: System.IProperty }) {
   const hasInitialVariable = !!property.initial.variable
-  const initialType = System.Natural.getType(property.initial)
-  const initialValue = System.Natural.getValue(property.initial)
+  const initialType = System.Initial.getType(property.initial)
+  const initialValue = System.Initial.getValue(property.initial)
   const addTransformType = System.Property.getTransformedType(property)
 
   return (

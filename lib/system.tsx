@@ -37,85 +37,88 @@ const typeToType = (item: string | number | boolean) => {
 export const properties = new Map<string, IProperty>([])
 export const variables = new Map<string, IProperty>([])
 
-/* ----------------- Natural Values ----------------- */
+/* ----------------- Initial Values ----------------- */
 
-function createNatural<T extends Type>(opts: {
-  id?: string
-  type: T
-  value: ValueTypes[T]
+export interface IInitial {
+  __type: "initial"
+  id: string
+  type: Type
+  values: { [key in keyof ValueTypes]: ValueTypes[key] }
   variable?: string
-}) {
-  const { id = uniqueId(), type, value, variable } = opts
-  return {
-    id,
-    type,
-    values: { ...defaultValues, [type]: value },
-    variable,
-  }
 }
 
-export type INatural = ReturnType<typeof createNatural>
-
-export class Natural {
+export class Initial {
   static create<T extends Type>(opts: {
     id?: string
     type: T
     value: ValueTypes[T]
     variable?: string
-  }) {
-    return createNatural(opts)
+  }): IInitial {
+    const { id = uniqueId(), type, value, variable } = opts
+    return {
+      __type: "initial" as const,
+      id,
+      type,
+      values: { ...defaultValues, [type]: value },
+      variable,
+    }
   }
-  static getType(value: INatural) {
+
+  static getType(value: IInitial) {
     return value.type
   }
-  static getValue(value: INatural) {
+
+  static getValue(value: IInitial) {
     if (value.variable) {
       return Property.getValue(variables.get(value.variable)!)
     }
     return value.values[value.type]
   }
-  static setType<T extends Type>(value: INatural, type: T) {
+
+  static setType<T extends Type>(value: IInitial, type: T) {
     return (value.type = type)
   }
+
   static setValue<T extends Type>(
-    value: INatural,
+    value: IInitial,
     type: T,
     next: ValueTypes[T]
   ) {
     return (value.values[type] = next)
   }
-  static setVariable(value: INatural, variable?: string) {
+
+  static setVariable(value: IInitial, variable?: string) {
     value.variable = variable
   }
 }
 
 /* ------------------ Enum Property ----------------- */
 
-function createEnumerated<T extends string>(opts: {
-  id?: string
-  name: string
-  value: T
-  options: T[]
-}): IEnumerated<T> {
-  const { id = uniqueId(), name, value, options } = opts
-  return {
-    id,
-    name,
-    type: "enum",
-    value,
-    options,
-  }
-}
-
-export type IEnumerated<T extends string = string> = {
+export interface IEnumerated<T extends string = string> {
+  __type: "enumerated"
   id: string
-  type: "enum"
   name: string
   value: T
   options: T[]
 }
 
 export class Enumerated {
+  static create<T extends string>(opts: {
+    id?: string
+    name: string
+    value: T
+    options: T[]
+  }): IEnumerated {
+    const { id = uniqueId(), name, value, options } = opts
+    return {
+      __type: "enumerated" as const,
+      id,
+      name,
+      value,
+      options,
+    }
+  }
+
   static getValue(enumerated: IEnumerated) {
     return enumerated.value
   }
@@ -131,15 +134,6 @@ export class Enumerated {
     enumerated.value = value
     return enumerated
   }
-
-  static create<T extends string>(opts: {
-    id?: string
-    name: string
-    value: T
-    options: T[]
-  }) {
-    return createEnumerated(opts)
-  }
 }
 
 /* -------------------- Transform ------------------- */
@@ -150,6 +144,7 @@ export type TransformFn<I extends Type, O extends Type> = (
 ) => ValueTypes[O]
 
 export interface ITransform<I extends Type = Type, O extends Type = Type> {
+  __type: "transform"
   id: string
   name: TransformName
   inputType: I
@@ -159,25 +154,22 @@ export interface ITransform<I extends Type = Type, O extends Type = Type> {
   returnedValue?: ValueTypes[O]
 }
 
-export type ITransformOpts<I extends Type, O extends Type> = {
-  id?: string
-  name: TransformName
-  inputType: I
-  outputType: O
-  fn: TransformFn<I, O>
-  args?: (IProperty | IEnumerated)[]
-}
-
-function createTransform<I extends Type, O extends Type>(
-  opts: ITransformOpts<I, O>
-): ITransform<I, O> {
-  const { id = uniqueId(), args = [], ...rest } = opts
-  return { id, args, ...rest }
-}
-
 export class Transform {
-  static create<I extends Type, O extends Type>(opts: ITransformOpts<I, O>) {
-    return createTransform<I, O>(opts)
+  static create<I extends Type, O extends Type>(opts: {
+    id?: string
+    name: TransformName
+    inputType: I
+    outputType: O
+    fn: TransformFn<I, O>
+    args?: (IProperty | IEnumerated)[]
+  }): ITransform<I, O> {
+    const { id = uniqueId(), args = [], ...rest } = opts
+    return {
+      __type: "transform" as const,
+      id,
+      args,
+      ...rest,
+    }
   }
 
   static transformValue<I extends Type, O extends Type>(
@@ -185,7 +177,9 @@ export class Transform {
     value: ValueTypes[I]
   ) {
     const vals = transform.args.map((arg) =>
-      "type" in arg ? Enumerated.getValue(arg) : Property.getValue(arg)
+      arg.__type === "enumerated"
+        ? Enumerated.getValue(arg)
+        : Property.getValue(arg)
     )
     transform.returnedValue = transform.fn(value, ...vals)
     return transform.returnedValue
@@ -194,60 +188,63 @@ export class Transform {
 
 /* -------------------- Property -------------------- */
 
-interface ValueError {
+interface IError {
   message: string
   index: number
 }
 
-interface ValueWarning {
+interface IWarning {
   message: string
   index: number
 }
 
-interface IPropertyOpts {
-  id?: string
-  isVariable?: boolean
+export interface IProperty {
+  __type: "property"
+  id: string
   name: string
-  initial: INatural
-  transforms?: ITransform<Type, Type>[]
-  finalTypes: Type[]
+  isVariable: boolean
+  initial: IInitial
+  type: Type
+  transforms: ITransform<Type, Type>[]
+  error?: IError
+  warning?: IWarning
 }
-
-function createProperty(opts: IPropertyOpts) {
-  const {
-    id = uniqueId(),
-    transforms = [],
-    isVariable = false,
-    name,
-    initial,
-    finalTypes,
-  } = opts
-  return {
-    id,
-    name,
-    isVariable,
-    initial,
-    transforms,
-    finalTypes,
-    finalType: undefined as Type | undefined,
-    error: undefined as ValueError | undefined,
-    warning: undefined as ValueWarning | undefined,
-  }
-}
-
-export type IProperty = ReturnType<typeof createProperty>
 
 export class Property {
-  static createProperty(opts: IPropertyOpts) {
-    const property = createProperty({ ...opts, isVariable: false })
-    properties.set(property.id, property)
-    return property
-  }
+  static create(opts: {
+    id?: string
+    isVariable?: boolean
+    name: string
+    initial: IInitial
+    transforms?: ITransform<Type, Type>[]
+  }): IProperty {
+    const {
+      id = uniqueId(),
+      name,
+      transforms = [],
+      isVariable = false,
+      initial,
+    } = opts
+    const property = {
+      __type: "property" as const,
+      id,
+      name,
+      type: Initial.getType(initial),
+      isVariable,
+      initial,
+      transforms,
+      finalType: undefined as Type | undefined,
+      error: undefined as IError | undefined,
+      warning: undefined as IWarning | undefined,
+    }
 
-  static createVariable(opts: IPropertyOpts) {
-    const variable = createProperty({ ...opts, isVariable: true })
-    variables.set(variable.id, variable)
-    return variable
+    if (isVariable) {
+      variables.set(id, property)
+    } else {
+      properties.set(id, property)
+    }
+
+    return property
   }
 
   static setName(property: IProperty, name: string) {
@@ -291,19 +288,18 @@ export class Property {
       ? (property.transforms[property.transforms.length - 1].outputType as Type)
       : property.initial.variable
       ? Property.getTransformedType(variables.get(property.initial.variable)!)
-      : Natural.getType(property.initial)
+      : Initial.getType(property.initial)
   }
 
   static getValue(property: IProperty): ValueTypes[Type] {
     property.error = undefined
     property.warning = undefined
-    property.finalType = undefined
 
     let current = {
-      type: Natural.getType(property.initial),
-      value: Natural.getValue(property.initial),
-      warning: undefined as ValueWarning | undefined,
-      error: undefined as ValueError | undefined,
+      type: property.type,
+      value: Initial.getValue(property.initial),
+      warning: undefined as IWarning | undefined,
+      error: undefined as IError | undefined,
     }
 
     property.transforms.forEach((transform, index) => {
@@ -358,48 +354,38 @@ export class Property {
 
     property.error = result.error
 
-    if (!property.finalTypes.includes(result.type)) {
+    // Variables can have any final type, we don't have to handle
+    // the case where the final transform does not return a value
+    // of the "correct" final type.
+    if (!property.isVariable && property.type !== result.type) {
       // Try to coerce the value into the correct type.
       property.warning = {
         index: -1,
-        message: `Transforms produced a ${result.type} instead of a ${property.finalTypes}. We've converted this into the correct type.`,
+        message: `Transforms produced a ${result.type} instead of a ${property.type}. We've converted this into the correct type.`,
       }
 
-      for (let t of property.finalTypes) {
-        if (t === Type.Text) {
-          try {
-            property.finalType = Type.Text
-            return String(result.value)
-          } catch (e) {}
-        } else if (t === Type.Number) {
-          try {
-            property.finalType = Type.Number
-            return Number(result.value)
-          } catch (e) {}
-        } else if (t === Type.Boolean) {
-          try {
-            property.finalType = Type.Boolean
-            return Boolean(result.value)
-          } catch (e) {}
+      try {
+        switch (property.type) {
+          case Type.Text:
+            result.value = String(result.value)
+          case Type.Number:
+            result.value = Number(result.value)
+          case Type.Boolean:
+            result.value = Boolean(result.value)
         }
-      }
-
-      if (!property.finalType) {
-        property.finalType = Natural.getType(property.initial)
+      } catch (e) {
         property.error = {
           message: "The transformed value is invalid.",
           index: property.transforms.length - 1,
         }
-        return Natural.getValue(property.initial)
+        result.value = property.initial.values[property.type]
       }
     }
 
-    property.finalType = result.type
     return result.value
   }
 
   static getType(property: IProperty) {
-    Property.getValue(property)
-    return property.finalType as Type
+    return property.type
   }
 }

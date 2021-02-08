@@ -33,7 +33,7 @@ export default function Transform({
       {transform.args.length > 0 && (
         <ul>
           {transform.args.map((arg) => {
-            if ("type" in arg) {
+            if (arg.__type === "enumerated") {
               return (
                 <li key={arg.id}>
                   <EnumInput

@@ -2,8 +2,8 @@ import { createState, createSelectorHook } from "@state-designer/react"
 import { System } from "./lib"
 import {
   Type,
+  Initial,
   Property,
-  Natural,
   IProperty,
   ITransform,
   ValueTypes,
@@ -20,19 +20,16 @@ export type Data = {
   variables: Map<string, IProperty>
 }
 
-const allTypes = [Type.Text, Type.Boolean, Type.Number]
-
 export const initialData: Data = {
-  version: 7,
+  version: 9,
   selected: undefined,
   properties: new Map([
     [
       "title",
-      Property.createProperty({
+      Property.create({
         id: "title",
         name: "Title",
-        finalTypes: [Type.Text],
-        initial: Natural.create({
+        initial: Initial.create({
           type: Type.Text,
           value: "Six Headlines to Read in 2021",
         }),
@@ -40,11 +37,10 @@ export const initialData: Data = {
     ],
     [
       "author",
-      Property.createProperty({
+      Property.create({
         id: "author",
         name: "Author",
-        finalTypes: [Type.Text],
-        initial: Natural.create({
+        initial: Initial.create({
           type: Type.Text,
           value: "Anonymous",
         }),
@@ -52,11 +48,10 @@ export const initialData: Data = {
     ],
     [
       "stars",
-      Property.createProperty({
+      Property.create({
         id: "stars",
         name: "Stars",
-        finalTypes: [Type.Number],
-        initial: Natural.create({
+        initial: Initial.create({
           type: Type.Number,
           value: 0,
         }),
@@ -64,11 +59,10 @@ export const initialData: Data = {
     ],
     [
       "starred",
-      Property.createProperty({
+      Property.create({
         id: "starred",
         name: "Starred",
-        finalTypes: [Type.Boolean],
-        initial: Natural.create({
+        initial: Initial.create({
           type: Type.Boolean,
           value: false,
         }),
@@ -78,11 +72,11 @@ export const initialData: Data = {
   variables: new Map([
     [
       "firstName",
-      Property.createVariable({
+      Property.create({
         id: "firstName",
         name: "First Name",
-        finalTypes: allTypes,
-        initial: Natural.create({
+        isVariable: true,
+        initial: Initial.create({
           type: Type.Text,
           value: "Miranda",
         }),
@@ -162,7 +156,7 @@ const state = createState({
       }
     ) {
       const { property, type } = payload
-      Natural.setType(property.initial, type)
+      Initial.setType(property.initial, type)
     },
     changeInitialValue(
       _,
@@ -172,9 +166,9 @@ const state = createState({
       }
     ) {
       const { property, value } = payload
-      const type = Natural.getType(property.initial)
+      const type = Initial.getType(property.initial)
       const val = coerceValue(type, value)
-      Natural.setValue(property.initial, type, val)
+      Initial.setValue(property.initial, type, val)
     },
     changeEnumValue(
       _,
@@ -225,7 +219,7 @@ const state = createState({
       }
     ) {
       const { property, variable } = payload
-      Natural.setVariable(property.initial, variable?.id)
+      Initial.setVariable(property.initial, variable?.id)
     },
     duplicateTransform(
       _,
@@ -239,10 +233,10 @@ const state = createState({
       Property.insertTransform(property, transform, index + 1)
     },
     createVariable(data) {
-      const variable = Property.createVariable({
+      const variable = Property.create({
         name: "New Variable",
-        finalTypes: allTypes,
-        initial: Natural.create({
+        isVariable: true,
+        initial: Initial.create({
           type: Type.Text,
           value: "My Value",
         }),

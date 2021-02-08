@@ -23,7 +23,7 @@ export type Data = {
 }
 
 export const initialData: Data = {
-  version: 20,
+  version: 29,
   selected: undefined,
   properties: new Map([
     [
@@ -34,6 +34,7 @@ export const initialData: Data = {
           Property.create({
             id: "title",
             name: "Title",
+            scope: "global",
             initial: Initial.create({
               type: Type.Text,
               value: "Six Headlines to Read in 2021",
@@ -45,6 +46,7 @@ export const initialData: Data = {
           Property.create({
             id: "author",
             name: "Author",
+            scope: "global",
             initial: Initial.create({
               type: Type.Text,
               value: "Anonymous",
@@ -56,6 +58,7 @@ export const initialData: Data = {
           Property.create({
             id: "stars",
             name: "Stars",
+            scope: "global",
             initial: Initial.create({
               type: Type.Number,
               value: 0,
@@ -67,6 +70,7 @@ export const initialData: Data = {
           Property.create({
             id: "starred",
             name: "Starred",
+            scope: "global",
             initial: Initial.create({
               type: Type.Boolean,
               value: false,
@@ -114,7 +118,7 @@ if (typeof window !== "undefined") {
         new Map(
           members.map((member) => {
             member.transforms.forEach((transform: ITransform) => {
-              const source = Transforms.getTransform(transform.name, member.id)
+              const source = Transforms.getTransform(transform.name, "temp")
               transform.fn = source.fn as any
             })
             return [member.id, member]
@@ -129,8 +133,8 @@ if (typeof window !== "undefined") {
         new Map(
           members.map((member) => {
             member.transforms.forEach((transform: ITransform) => {
-              const source = Transforms.getTransform(transform.name, member.id)
-              member.fn = source.fn as any
+              const source = Transforms.getTransform(transform.name, "temp")
+              transform.fn = source.fn as any
             })
             return [member.id, member]
           })
@@ -140,6 +144,8 @@ if (typeof window !== "undefined") {
 
     System.tables.variables = variables
     System.tables.properties = properties
+
+    initialData.selected = local.selected
   }
 }
 
@@ -176,12 +182,12 @@ const state = createState({
     changeName(
       _,
       payload: {
-        variable: IVariable
+        property: IVariable
         name: string
       }
     ) {
-      const { variable, name } = payload
-      Variable.setName(variable, name)
+      const { property, name } = payload
+      Variable.setName(property, name)
     },
     changeInitialType(
       _,
@@ -352,6 +358,7 @@ state.onUpdate((update: typeof state) => {
   localStorage.setItem(
     "play_vars",
     JSON.stringify({
+      selected: update.data.selected,
       version: update.data.version,
       properties: update.values.properties,
       variables: update.values.variables,

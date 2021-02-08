@@ -85,13 +85,15 @@ function transform<I extends Type, O extends Type>(options: {
 interface PropertyOptions<T extends Type> {
   name: string
   type: T
+  scope: string
   value: ValueTypes[T]
 }
 
 function property<T extends Type>(options: PropertyOptions<T>) {
-  const { name, type, value } = options
+  const { name, type, scope, value } = options
   return Property.create({
     name,
+    scope,
     initial: Initial.create({ type, value }),
   })
 }
@@ -120,8 +122,9 @@ export function getTransform(name: TransformName, scope: string) {
         outputType: Type.Text,
         fn: (value, a, b) => value + b + a,
         args: [
-          property({ name: "Text", type: Type.Text, value: "Text" }),
+          property({ scope, name: "Text", type: Type.Text, value: "Text" }),
           property({
+            scope,
             name: "Separator",
             type: Type.Text,
             value: " ",
@@ -162,8 +165,8 @@ export function getTransform(name: TransformName, scope: string) {
             ? value.slice(a)
             : value.slice(Math.min(a, b), Math.max(a, b)),
         args: [
-          property({ name: "Start", type: Type.Number, value: 0 }),
-          property({ name: "End", type: Type.Number, value: 10 }),
+          property({ scope, name: "Start", type: Type.Number, value: 0 }),
+          property({ scope, name: "End", type: Type.Number, value: 10 }),
         ],
       })
     }
@@ -184,7 +187,7 @@ export function getTransform(name: TransformName, scope: string) {
             value: "start",
             options: ["start", "end"],
           }),
-          property({ name: "Length", type: Type.Number, value: 3 }),
+          property({ scope, name: "Length", type: Type.Number, value: 3 }),
         ],
       })
     }
@@ -243,7 +246,7 @@ export function getTransform(name: TransformName, scope: string) {
             anywhere: () => v.includes(t),
           }[op]()),
         args: [
-          property({ name: "Text", type: Type.Text, value: "Text" }),
+          property({ scope, name: "Text", type: Type.Text, value: "Text" }),
           enumProperty({
             name: "Place",
             value: "anywhere",
@@ -259,7 +262,9 @@ export function getTransform(name: TransformName, scope: string) {
         inputType: Type.Text,
         outputType: Type.Boolean,
         fn: (v, a) => v === a,
-        args: [property({ name: "Text", type: Type.Text, value: "Text" })],
+        args: [
+          property({ scope, name: "Text", type: Type.Text, value: "Text" }),
+        ],
       })
     }
     // Number to Number
@@ -270,7 +275,9 @@ export function getTransform(name: TransformName, scope: string) {
         inputType: Type.Number,
         outputType: Type.Number,
         fn: (v, b) => v + b,
-        args: [property({ name: "Number", type: Type.Number, value: 10 })],
+        args: [
+          property({ scope, name: "Number", type: Type.Number, value: 10 }),
+        ],
       })
     }
     case "Subtract": {
@@ -282,7 +289,9 @@ export function getTransform(name: TransformName, scope: string) {
         fn: (v, b) => {
           return v - b
         },
-        args: [property({ name: "Number", type: Type.Number, value: 10 })],
+        args: [
+          property({ scope, name: "Number", type: Type.Number, value: 10 }),
+        ],
       })
     }
     case "Multiply": {
@@ -292,7 +301,9 @@ export function getTransform(name: TransformName, scope: string) {
         inputType: Type.Number,
         outputType: Type.Number,
         fn: (v, b) => v * b,
-        args: [property({ name: "Number", type: Type.Number, value: 10 })],
+        args: [
+          property({ scope, name: "Number", type: Type.Number, value: 10 }),
+        ],
       })
     }
     case "Divide": {
@@ -302,7 +313,9 @@ export function getTransform(name: TransformName, scope: string) {
         inputType: Type.Number,
         outputType: Type.Number,
         fn: (v, b) => v / b,
-        args: [property({ name: "Number", type: Type.Number, value: 10 })],
+        args: [
+          property({ scope, name: "Number", type: Type.Number, value: 10 }),
+        ],
       })
     }
     case "Round": {
@@ -340,8 +353,8 @@ export function getTransform(name: TransformName, scope: string) {
             ? Math.min(v, max)
             : Math.min(Math.max(v, min), max),
         args: [
-          property({ name: "Min", type: Type.Number, value: 10 }),
-          property({ name: "Max", type: Type.Number, value: 10 }),
+          property({ scope, name: "Min", type: Type.Number, value: 10 }),
+          property({ scope, name: "Max", type: Type.Number, value: 10 }),
         ],
       })
     }
@@ -421,7 +434,9 @@ export function getTransform(name: TransformName, scope: string) {
         inputType: Type.Number,
         outputType: Type.Text,
         fn: (v, a) => v.toFixed(a),
-        args: [property({ name: "Decimal", type: Type.Number, value: 0 })],
+        args: [
+          property({ scope, name: "Decimal", type: Type.Number, value: 0 }),
+        ],
       })
     }
     // Number to Boolean
@@ -455,7 +470,7 @@ export function getTransform(name: TransformName, scope: string) {
               "more than",
             ],
           }),
-          property({ name: "Number", type: Type.Number, value: 10 }),
+          property({ scope, name: "Number", type: Type.Number, value: 10 }),
         ],
       })
     }
@@ -478,11 +493,7 @@ export function getTransform(name: TransformName, scope: string) {
         outputType: Type.Boolean,
         fn: (v, a) => v && a,
         args: [
-          property({
-            name: "Boolean",
-            type: Type.Boolean,
-            value: true,
-          }),
+          property({ scope, name: "Boolean", type: Type.Boolean, value: true }),
         ],
       })
     }
@@ -494,11 +505,7 @@ export function getTransform(name: TransformName, scope: string) {
         outputType: Type.Boolean,
         fn: (v, a) => v || a,
         args: [
-          property({
-            name: "Boolean",
-            type: Type.Boolean,
-            value: true,
-          }),
+          property({ scope, name: "Boolean", type: Type.Boolean, value: true }),
         ],
       })
     }
@@ -510,11 +517,7 @@ export function getTransform(name: TransformName, scope: string) {
         outputType: Type.Boolean,
         fn: (v, a) => !(v || a),
         args: [
-          property({
-            name: "Boolean",
-            type: Type.Boolean,
-            value: true,
-          }),
+          property({ scope, name: "Boolean", type: Type.Boolean, value: true }),
         ],
       })
     }

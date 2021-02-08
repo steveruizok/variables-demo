@@ -17,6 +17,12 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
   const isVariable = property.__type === "variable"
   const hasTransforms = property.transforms.length > 0
 
+  // return (
+  //   <pre>
+  //     <code>{JSON.stringify(property, null, 2)}</code>
+  //   </pre>
+  // )
+
   return (
     <PanelBody>
       <InputsContainer>
@@ -192,8 +198,6 @@ function TransformedValueEditor({
           })
         }
       />
-      {property.error && <p>Error: {property.error.message}</p>}
-      {property.warning && <p>Warning: {property.warning.message}</p>}
       <h3>Final Value</h3>
       <InputsContainer>
         <PropertyInput
@@ -203,6 +207,8 @@ function TransformedValueEditor({
           showVariables={false}
         />
       </InputsContainer>
+      {property.error && <p>Error: {property.error.message}</p>}
+      {property.warning && <p>Warning: {property.warning.message}</p>}
     </>
   )
 }

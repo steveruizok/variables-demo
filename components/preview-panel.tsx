@@ -37,25 +37,25 @@ export default function PreviewPanel() {
                   selection: title,
                 })
               }
-              // contentEditable={
-              //   !title.initial.variable && title.transforms.length === 0
-              // }
             >
               {System.Property.getValue(title)}
             </Selectable>
           </h1>
           <hr />
           <DetailsRow>
-            <Selectable
-              isActive={isActive(author)}
-              onClick={() =>
-                state.send("SELECTED", {
-                  selection: author,
-                })
-              }
-            >
-              By {System.Property.getValue(author)}
-            </Selectable>
+            <div>
+              By{" "}
+              <Selectable
+                isActive={isActive(author)}
+                onClick={() =>
+                  state.send("SELECTED", {
+                    selection: author,
+                  })
+                }
+              >
+                {System.Property.getValue(author)}
+              </Selectable>
+            </div>
             <span>
               Stars{" "}
               <Selectable

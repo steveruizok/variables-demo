@@ -20,7 +20,7 @@ export default function PropertyPanel() {
           <X size={16} />
         </button>
       </PanelHeader>
-      <PropertyEditor property={selected} />
+      <PropertyEditor key={selected.id} property={selected} />
     </Panel>
   ) : (
     <div>

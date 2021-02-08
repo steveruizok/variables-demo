@@ -344,8 +344,9 @@ export class PropertyBase {
         current.type = transform.outputType
         current.value = value
       } catch (e) {
+        current.value = property.initial.values[property.initial.type]
         // Some JavaScript error has occurred (ie Number.split is not a function).
-        property.error = { message: e, index }
+        property.error = { message: e.message, index }
       }
     })
 
@@ -376,7 +377,7 @@ export class PropertyBase {
           message: "The transformed value is invalid: " + e.message,
           index: property.transforms.length - 1,
         }
-        current.value = property.initial.values[property.type]
+        current.value = property.initial.values[property.initial.type]
       }
     }
 

@@ -10,11 +10,11 @@ export default function PreviewPanel() {
   const { data } = useStateDesigner(state)
 
   function getProperty(id: string) {
-    return data.properties.get(id)!
+    return data.properties.get("global").get(id)!
   }
 
-  function isActive(property: System.IProperty) {
-    return data.selected === property.id
+  function isActive(property: System.IProperty | System.IVariable) {
+    return data.selected?.id === property.id
   }
 
   const title = getProperty("title")
@@ -23,13 +23,7 @@ export default function PreviewPanel() {
   const starred = getProperty("starred")
 
   return (
-    <PreviewContainer
-      onClick={() =>
-        state.send("SELECTED_PROPERTY", {
-          property: undefined,
-        })
-      }
-    >
+    <PreviewContainer onClick={() => state.send("CLEARED_SELECTION")}>
       <PanelHeader>
         <h2>Preview</h2>
       </PanelHeader>
@@ -39,8 +33,8 @@ export default function PreviewPanel() {
             <Selectable
               isActive={isActive(title)}
               onClick={() =>
-                state.send("SELECTED_PROPERTY", {
-                  property: title,
+                state.send("SELECTED", {
+                  selection: title,
                 })
               }
               // contentEditable={
@@ -55,8 +49,8 @@ export default function PreviewPanel() {
             <Selectable
               isActive={isActive(author)}
               onClick={() =>
-                state.send("SELECTED_PROPERTY", {
-                  property: author,
+                state.send("SELECTED", {
+                  selection: author,
                 })
               }
             >
@@ -67,8 +61,8 @@ export default function PreviewPanel() {
               <Selectable
                 isActive={isActive(stars)}
                 onClick={() =>
-                  state.send("SELECTED_PROPERTY", {
-                    property: stars,
+                  state.send("SELECTED", {
+                    selection: stars,
                   })
                 }
               >
@@ -78,8 +72,8 @@ export default function PreviewPanel() {
             <Selectable
               isActive={isActive(starred)}
               onClick={() =>
-                state.send("SELECTED_PROPERTY", {
-                  property: starred,
+                state.send("SELECTED", {
+                  selection: starred,
                 })
               }
             >

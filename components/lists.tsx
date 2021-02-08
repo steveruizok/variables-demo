@@ -6,38 +6,20 @@ import state from "state"
 import TypeIcon from "./type-icon"
 
 export function PropertiesList() {
-  const {
-    data,
-    values: { properties },
-  } = useStateDesigner(state)
+  const { data, values } = useStateDesigner(state)
 
-  const propertiesByType = Object.entries(
-    properties.reduce((acc, cur) => {
-      const type = System.Property.getType(cur)
-      if (acc[type] === undefined) {
-        acc[type] = []
-      }
-      acc[type].push(cur)
-      return acc
-    }, {} as Record<System.Type, System.IProperty[]>)
-  )
+  const properties = values.properties
 
   return (
     <ul>
-      {propertiesByType.map(([name, properties], i) => (
-        <li key={i}>
-          <ul>
-            {properties.map((property, i) => (
-              <li key={property.id}>
-                <PropertyButton
-                  property={property}
-                  isActive={data.selected === property.id}
-                  type={System.Property.getType(property)}
-                  value={System.Property.getValue(property)}
-                />
-              </li>
-            ))}
-          </ul>
+      {properties[0].members.map((property, i) => (
+        <li key={property.id}>
+          <PropertyButton
+            property={property}
+            isActive={data.selected?.id === property.id}
+            type={System.Property.getType(property)}
+            value={System.Property.getValue(property)}
+          />
         </li>
       ))}
     </ul>
@@ -45,33 +27,22 @@ export function PropertiesList() {
 }
 
 export function VariablesList() {
-  const { data } = useStateDesigner(state)
-  const variables = Array.from(data.variables.values())
-
-  const varsByType = Object.entries(
-    variables.reduce((acc, cur) => {
-      const type = System.Property.getType(cur)
-      if (acc[type] === undefined) {
-        acc[type] = []
-      }
-      acc[type].push(cur)
-      return acc
-    }, {} as Record<System.Type, System.IProperty[]>)
-  )
+  const { data, values } = useStateDesigner(state)
+  const variables = values.variables
 
   return (
     <ul>
-      {varsByType.map(([name, vars], i) => (
+      {variables.map(({ name, members }, i) => (
         <li key={i}>
           <ul>
-            {vars.map((variable) => {
+            {members.map((variable) => {
               return (
                 <li key={variable.id}>
                   <PropertyButton
                     property={variable}
-                    isActive={data.selected === variable.id}
-                    type={System.Property.getType(variable)}
-                    value={System.Property.getValue(variable)}
+                    isActive={data.selected?.id === variable.id}
+                    type={System.Variable.getType(variable)}
+                    value={System.Variable.getValue(variable)}
                   />
                 </li>
               )
@@ -94,7 +65,7 @@ function PropertyButton({
   type,
   value,
 }: {
-  property: System.IProperty
+  property: System.IProperty | System.IVariable
   isActive: boolean
   type: System.Type
   value: System.ValueTypes[System.Type]
@@ -104,8 +75,8 @@ function PropertyButton({
       isActive={isActive}
       hasError={!!property.error}
       onClick={() =>
-        state.send("SELECTED_PROPERTY", {
-          property: property,
+        state.send("SELECTED", {
+          selection: property,
         })
       }
     >

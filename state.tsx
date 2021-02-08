@@ -3,6 +3,8 @@ import { System } from "./lib"
 import {
   Type,
   Initial,
+  Variable,
+  IVariable,
   Property,
   IProperty,
   ITransform,
@@ -15,72 +17,82 @@ import { coerceValue } from "./utils"
 
 export type Data = {
   version: number
-  selected?: string
-  properties: Map<string, IProperty>
-  variables: Map<string, IProperty>
+  selected?: System.ScopedReference & { type: "variable" | "property" }
+  properties: System.Properties
+  variables: System.Variables
 }
 
 export const initialData: Data = {
-  version: 9,
+  version: 20,
   selected: undefined,
   properties: new Map([
     [
-      "title",
-      Property.create({
-        id: "title",
-        name: "Title",
-        initial: Initial.create({
-          type: Type.Text,
-          value: "Six Headlines to Read in 2021",
-        }),
-      }),
-    ],
-    [
-      "author",
-      Property.create({
-        id: "author",
-        name: "Author",
-        initial: Initial.create({
-          type: Type.Text,
-          value: "Anonymous",
-        }),
-      }),
-    ],
-    [
-      "stars",
-      Property.create({
-        id: "stars",
-        name: "Stars",
-        initial: Initial.create({
-          type: Type.Number,
-          value: 0,
-        }),
-      }),
-    ],
-    [
-      "starred",
-      Property.create({
-        id: "starred",
-        name: "Starred",
-        initial: Initial.create({
-          type: Type.Boolean,
-          value: false,
-        }),
-      }),
+      "global",
+      new Map([
+        [
+          "title",
+          Property.create({
+            id: "title",
+            name: "Title",
+            initial: Initial.create({
+              type: Type.Text,
+              value: "Six Headlines to Read in 2021",
+            }),
+          }),
+        ],
+        [
+          "author",
+          Property.create({
+            id: "author",
+            name: "Author",
+            initial: Initial.create({
+              type: Type.Text,
+              value: "Anonymous",
+            }),
+          }),
+        ],
+        [
+          "stars",
+          Property.create({
+            id: "stars",
+            name: "Stars",
+            initial: Initial.create({
+              type: Type.Number,
+              value: 0,
+            }),
+          }),
+        ],
+        [
+          "starred",
+          Property.create({
+            id: "starred",
+            name: "Starred",
+            initial: Initial.create({
+              type: Type.Boolean,
+              value: false,
+            }),
+          }),
+        ],
+      ]),
     ],
   ]),
   variables: new Map([
     [
-      "firstName",
-      Property.create({
-        id: "firstName",
-        name: "First Name",
-        isVariable: true,
-        initial: Initial.create({
-          type: Type.Text,
-          value: "Miranda",
-        }),
-      }),
+      "global",
+      new Map<string, IVariable>([
+        // [
+        //   "firstName",
+        //   Variable.create({
+        //     id: "firstName",
+        //     scope: "global",
+        //     name: "Starred",
+        //     initial: Initial.create({
+        //       type: Type.Boolean,
+        //       value: false,
+        //     }),
+        //   }),
+        // ],
+      ]),
     ],
   ]),
 }
@@ -91,24 +103,43 @@ if (typeof window !== "undefined") {
   const local = JSON.parse(localStorage.getItem("play_vars") || "{}")
 
   if (local.version === initialData.version) {
-    initialData.variables.clear()
-    for (let variable of local.variables) {
-      variable.transforms.forEach((transform: ITransform) => {
-        const source = Transforms.getTransform(transform.name)
-        transform.fn = source.fn as any
-      })
-      initialData.variables.set(variable.id, variable)
-      System.variables.set(variable.id, variable)
+    const { variables, properties } = initialData
+
+    variables.clear()
+    properties.clear()
+
+    for (let { name, members } of local.properties) {
+      properties.set(
+        name,
+        new Map(
+          members.map((member) => {
+            member.transforms.forEach((transform: ITransform) => {
+              const source = Transforms.getTransform(transform.name, member.id)
+              transform.fn = source.fn as any
+            })
+            return [member.id, member]
+          })
+        )
+      )
     }
-    initialData.properties.clear()
-    for (let property of local.properties) {
-      property.transforms.forEach((transform: ITransform) => {
-        const source = Transforms.getTransform(transform.name)
-        transform.fn = source.fn as any
-      })
-      initialData.properties.set(property.id, property)
-      System.properties.set(property.id, property)
+
+    for (let { name, members } of local.variables) {
+      variables.set(
+        name,
+        new Map(
+          members.map((member) => {
+            member.transforms.forEach((transform: ITransform) => {
+              const source = Transforms.getTransform(transform.name, member.id)
+              member.fn = source.fn as any
+            })
+            return [member.id, member]
+          })
+        )
+      )
     }
+
+    System.tables.variables = variables
+    System.tables.properties = properties
   }
 }
 
@@ -117,7 +148,7 @@ const state = createState({
   on: {
     RESTORED_PROPERTY: "restoreProperty",
     RESTORED_VARAIBLE: "restoreVariable",
-    SELECTED_PROPERTY: "selectProperty",
+    SELECTED: "select",
     CLEARED_SELECTION: "clearSelectedProperty",
     CHANGED_NAME: "changeName",
     CHANGED_INITIAL_TYPE: "changeInitialType",
@@ -127,13 +158,17 @@ const state = createState({
     REMOVED_TRANSFORM: "removeTransform",
     MOVED_TRANSFORM: "moveTransform",
     DUPLICATED_TRANSFORM: "duplicateTransform",
-    SELECTED_VARIABLE: "selectVariable",
+    SELECTED_VARIABLE: "selectInitialVariable",
     CREATED_VARIABLE: "createVariable",
   },
   actions: {
-    selectProperty(data, payload: { property: IProperty }) {
-      const { property } = payload
-      data.selected = property?.id
+    select(data, payload: { selection: IProperty | IVariable }) {
+      const { selection } = payload
+      data.selected = {
+        type: selection.__type,
+        scope: selection.scope,
+        id: selection.id,
+      }
     },
     clearSelectedProperty(data) {
       data.selected = undefined
@@ -141,17 +176,17 @@ const state = createState({
     changeName(
       _,
       payload: {
-        property: IProperty
+        variable: IVariable
         name: string
       }
     ) {
-      const { property, name } = payload
-      Property.setName(property, name)
+      const { variable, name } = payload
+      Variable.setName(variable, name)
     },
     changeInitialType(
       _,
       payload: {
-        property: IProperty
+        property: IProperty | IVariable
         type: Type
       }
     ) {
@@ -161,7 +196,7 @@ const state = createState({
     changeInitialValue(
       _,
       payload: {
-        property: IProperty
+        property: IProperty | IVariable
         value: ValueTypes[Type]
       }
     ) {
@@ -183,17 +218,20 @@ const state = createState({
     addTransform(
       _,
       payload: {
-        property: IProperty
+        property: IProperty | IVariable
         name: Transforms.TransformName
       }
     ) {
       const { property, name } = payload
-      Property.addTransform(property, Transforms.getTransform(name))
+      Property.addTransform(
+        property,
+        Transforms.getTransform(name, property.id)
+      )
     },
     removeTransform(
       _,
       payload: {
-        property: IProperty
+        property: IProperty | IVariable
         transform: ITransform<Type, Type>
       }
     ) {
@@ -203,7 +241,7 @@ const state = createState({
     moveTransform(
       _,
       payload: {
-        property: IProperty
+        property: IProperty | IVariable
         transform: ITransform
         index: number
       }
@@ -211,20 +249,23 @@ const state = createState({
       const { property, transform, index } = payload
       Property.moveTransform(property, transform, index)
     },
-    selectVariable(
+    selectInitialVariable(
       _,
       payload: {
-        property: IProperty
-        variable?: IProperty
+        property: IProperty | IVariable
+        variable?: IVariable
       }
     ) {
       const { property, variable } = payload
-      Initial.setVariable(property.initial, variable?.id)
+      Initial.setVariable(
+        property.initial,
+        variable ? { scope: variable.scope, id: variable.id } : undefined
+      )
     },
     duplicateTransform(
       _,
       payload: {
-        property: IProperty
+        property: IProperty | IVariable
         transform: ITransform
         index: number
       }
@@ -232,38 +273,77 @@ const state = createState({
       const { property, transform, index } = payload
       Property.insertTransform(property, transform, index + 1)
     },
-    createVariable(data) {
-      const variable = Property.create({
+    createVariable(data, payload = { scope: "global" }) {
+      const variable = Variable.create({
         name: "New Variable",
-        isVariable: true,
+        scope: payload.scope,
         initial: Initial.create({
           type: Type.Text,
           value: "My Value",
         }),
       })
-      data.variables.set(variable.id, variable)
-      data.selected = variable.id
+      if (!data.variables.has(variable.scope)) {
+        data.variables.set(variable.scope, new Map([]))
+      }
+
+      data.variables.get(variable.scope).set(variable.id, variable)
+      data.selected = {
+        type: "variable",
+        scope: variable.scope,
+        id: variable.id,
+      }
     },
     restoreProperty(data, property: IProperty) {
-      data.properties.set(property.id, property)
+      if (!data.properties.has(property.scope)) {
+        data.variables.set(property.scope, new Map([]))
+      }
+
+      data.properties.get(property.scope).set(property.id, property)
     },
-    restoreVariable(data, property: IProperty) {
-      data.variables.set(property.id, property)
+    restoreVariable(data, variable: IVariable) {
+      if (!data.variables.has(variable.scope)) {
+        data.variables.set(variable.scope, new Map([]))
+      }
+
+      data.variables.get(variable.scope).set(variable.id, variable)
+      data.selected = {
+        type: "variable",
+        scope: variable.scope,
+        id: variable.id,
+      }
     },
   },
   values: {
     selected(data) {
-      return (
-        data.selected &&
-        (data.properties.get(data.selected) ||
-          data.variables.get(data.selected))
-      )
+      if (!data.selected) return undefined
+
+      return data.selected.type === "variable"
+        ? data.variables.get(data.selected.scope).get(data.selected.id)
+        : data.properties.get(data.selected.scope).get(data.selected.id)
     },
     properties(data) {
-      return Array.from(data.properties.values())
+      return Array.from(data.properties.entries()).reduce(
+        (acc, [name, properties]) => {
+          acc.push({
+            name,
+            members: Array.from(properties.values()),
+          })
+          return acc
+        },
+        [] as { name: string; members: IProperty[] }[]
+      )
     },
     variables(data) {
-      return Array.from(data.variables.values())
+      return Array.from(data.variables.entries()).reduce(
+        (acc, [name, variables]) => {
+          acc.push({
+            name,
+            members: Array.from(variables.values()),
+          })
+          return acc
+        },
+        [] as { name: string; members: IVariable[] }[]
+      )
     },
   },
 })
@@ -273,8 +353,8 @@ state.onUpdate((update: typeof state) => {
     "play_vars",
     JSON.stringify({
       version: update.data.version,
-      properties: Array.from(update.data.properties.values()),
-      variables: Array.from(update.data.variables.values()),
+      properties: update.values.properties,
+      variables: update.values.variables,
     })
   )
 })

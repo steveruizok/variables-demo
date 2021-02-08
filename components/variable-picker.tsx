@@ -5,25 +5,36 @@ import { useSelector } from "state"
 
 interface VariablePickerProps {
   type?: System.Type
-  value?: string
-  onChange?: (variable?: System.IProperty) => void
+  id?: string
+  scope?: string
+  exclude?: string
+  onChange?: (variable?: System.IVariable) => void
 }
 
 export default function VariablePicker({
   type,
-  value,
+  id,
+  scope = "global",
+  exclude,
   onChange,
 }: VariablePickerProps) {
   const variables = useSelector((state) => state.data.variables)
-  const variablesArray = Array.from(variables.values())
+  const variablesArray = Array.from(variables.get(scope).values()).filter(
+    (v) => v.id !== exclude
+  )
 
   return (
-    <SelectWrapper hasVariable={!!value}>
+    <SelectWrapper hasVariable={!!id}>
       <select
-        value={value}
-        onChange={(e) => onChange?.(variables.get(e.currentTarget.value))}
+        value={id || ""}
+        onChange={({ currentTarget: { value } }) => {
+          const variable = value
+            ? System.getVariable({ scope, id: value })
+            : undefined
+          onChange?.(variable)
+        }}
       >
-        <option value={undefined}>None</option>
+        <option value={""}>None</option>
         {(type
           ? variablesArray.filter((v) => System.Property.getType(v) === type)
           : variablesArray

@@ -20,22 +20,28 @@ export const defaultValues: ValueTypes = {
   [Type.Boolean]: true,
 }
 
-const TypeToType = (type: Type) => {
-  return type
+export type Properties = Map<string, Map<string, IProperty>>
+export type Variables = Map<string, Map<string, IVariable>>
+
+export const tables = {
+  properties: new Map([
+    ["global", new Map<string, IProperty>([])],
+  ]) as Properties,
+  variables: new Map([["global", new Map<string, IVariable>([])]]) as Variables,
 }
 
-const typeToType = (item: string | number | boolean) => {
-  if (typeof item === "string") {
-    return Type.Text
-  }
-  if (typeof item === "boolean") {
-    return Type.Boolean
-  }
-  return Type.Number
+export interface ScopedReference {
+  scope: string
+  id: string
 }
 
-export const properties = new Map<string, IProperty>([])
-export const variables = new Map<string, IProperty>([])
+export function getVariable(ref: ScopedReference) {
+  return tables.variables.get(ref.scope).get(ref.id)
+}
+
+export function getProperty(ref: ScopedReference) {
+  return tables.properties.get(ref.scope).get(ref.id)
+}
 
 /* ----------------- Initial Values ----------------- */
 
@@ -44,7 +50,7 @@ export interface IInitial {
   id: string
   type: Type
   values: { [key in keyof ValueTypes]: ValueTypes[key] }
-  variable?: string
+  variable?: ScopedReference
 }
 
 export class Initial {
@@ -52,9 +58,9 @@ export class Initial {
     id?: string
     type: T
     value: ValueTypes[T]
-    variable?: string
+    variable?: ScopedReference
   }): IInitial {
-    const { id = uniqueId(), type, value, variable } = opts
+    const { id = uniqueId(String(Date.now())), type, value, variable } = opts
     return {
       __type: "initial" as const,
       id,
@@ -68,9 +74,12 @@ export class Initial {
     return value.type
   }
 
-  static getValue(value: IInitial) {
+  static getValue(value: IInitial, visited: string[] = []) {
     if (value.variable) {
-      return Property.getValue(variables.get(value.variable)!)
+      if (visited.includes(value.variable.id)) {
+        throw Error("Found a reference loop!")
+      }
+      return Variable.getValue(getVariable(value.variable), visited)
     }
     return value.values[value.type]
   }
@@ -87,7 +96,7 @@ export class Initial {
     return (value.values[type] = next)
   }
 
-  static setVariable(value: IInitial, variable?: string) {
+  static setVariable(value: IInitial, variable?: ScopedReference) {
     value.variable = variable
   }
 }
@@ -109,7 +118,7 @@ export class Enumerated {
     value: T
     options: T[]
   }): IEnumerated {
-    const { id = uniqueId(), name, value, options } = opts
+    const { id = uniqueId(String(Date.now())), name, value, options } = opts
     return {
       __type: "enumerated" as const,
       id,
@@ -147,6 +156,7 @@ export interface ITransform<I extends Type = Type, O extends Type = Type> {
   __type: "transform"
   id: string
   name: TransformName
+  scope: string
   inputType: I
   outputType: O
   fn: TransformFn<I, O>
@@ -160,10 +170,11 @@ export class Transform {
     name: TransformName
     inputType: I
     outputType: O
+    scope: string
     fn: TransformFn<I, O>
     args?: (IProperty | IEnumerated)[]
   }): ITransform<I, O> {
-    const { id = uniqueId(), args = [], ...rest } = opts
+    const { id = uniqueId(String(Date.now())), args = [], ...rest } = opts
     return {
       __type: "transform" as const,
       id,
@@ -174,13 +185,19 @@ export class Transform {
 
   static transformValue<I extends Type, O extends Type>(
     transform: ITransform<I, O>,
-    value: ValueTypes[I]
+    value: ValueTypes[I],
+    visited: string[]
   ) {
-    const vals = transform.args.map((arg) =>
-      arg.__type === "enumerated"
-        ? Enumerated.getValue(arg)
-        : Property.getValue(arg)
-    )
+    const vals = transform.args.map((arg) => {
+      if (arg.__type === "enumerated") {
+        return Enumerated.getValue(arg)
+      }
+      const value = Property.getValue(arg, visited)
+      if (arg.error) {
+        throw arg.error.message
+      }
+      return value
+    })
     transform.returnedValue = transform.fn(value, ...vals)
     return transform.returnedValue
   }
@@ -198,66 +215,40 @@ interface IWarning {
   index: number
 }
 
-export interface IProperty {
-  __type: "property"
+export interface IPropertyBase {
   id: string
   name: string
-  isVariable: boolean
+  scope: string
   initial: IInitial
-  type: Type
   transforms: ITransform<Type, Type>[]
   error?: IError
   warning?: IWarning
 }
 
-export class Property {
-  static create(opts: {
-    id?: string
-    isVariable?: boolean
-    name: string
-    initial: IInitial
-    transforms?: ITransform<Type, Type>[]
-  }): IProperty {
-    const {
-      id = uniqueId(),
-      name,
-      transforms = [],
-      isVariable = false,
-      initial,
-    } = opts
-    const property = {
-      __type: "property" as const,
-      id,
-      name,
-      type: Initial.getType(initial),
-      isVariable,
-      initial,
-      transforms,
-      finalType: undefined as Type | undefined,
-      error: undefined as IError | undefined,
-      warning: undefined as IWarning | undefined,
-    }
+export interface IProperty extends IPropertyBase {
+  __type: "property"
+  type: Type
+}
 
-    if (isVariable) {
-      variables.set(id, property)
-    } else {
-      properties.set(id, property)
-    }
+export interface IVariable extends IPropertyBase {
+  __type: "variable"
+}
 
-    return property
-  }
-
-  static setName(property: IProperty, name: string) {
+export class PropertyBase {
+  static setName(property: IProperty | IVariable, name: string) {
     property.name = name
   }
 
-  static addTransform(property: IProperty, transform: ITransform<any, any>) {
+  static addTransform(
+    property: IProperty | IVariable,
+    transform: ITransform<any, any>
+  ) {
     property.transforms.push(transform)
     return property
   }
 
   static insertTransform(
-    property: IProperty,
+    property: IProperty | IVariable,
     transform: ITransform<Type, Type>,
     index: number
   ) {
@@ -266,7 +257,7 @@ export class Property {
   }
 
   static removeTransform(
-    property: IProperty,
+    property: IProperty | IVariable,
     transform: ITransform<Type, Type>
   ) {
     property.transforms.splice(property.transforms.indexOf(transform), 1)
@@ -274,7 +265,7 @@ export class Property {
   }
 
   static moveTransform(
-    property: IProperty,
+    property: IProperty | IVariable,
     transform: ITransform<Type, Type>,
     index: number
   ) {
@@ -283,23 +274,42 @@ export class Property {
     return property
   }
 
-  static getTransformedType(property: IProperty): Type {
+  static getTransformedType(property: IProperty | IVariable): Type {
     return property.transforms.length > 0
       ? (property.transforms[property.transforms.length - 1].outputType as Type)
       : property.initial.variable
-      ? Property.getTransformedType(variables.get(property.initial.variable)!)
+      ? Property.getTransformedType(getVariable(property.initial.variable))
       : Initial.getType(property.initial)
   }
 
-  static getValue(property: IProperty): ValueTypes[Type] {
+  static getType(property: IProperty | IVariable) {
+    return Initial.getType(property.initial)
+  }
+
+  static getValue(
+    property: IProperty | IVariable,
+    visited: string[] = []
+  ): ValueTypes[Type] {
     property.error = undefined
     property.warning = undefined
 
     let current = {
-      type: property.type,
-      value: Initial.getValue(property.initial),
+      type: Initial.getType(property.initial),
+      value: undefined as any,
       warning: undefined as IWarning | undefined,
       error: undefined as IError | undefined,
+    }
+
+    const path = [...visited, property.id]
+
+    try {
+      current.value = Initial.getValue(property.initial, path)
+    } catch (e) {
+      property.error = {
+        index: -1,
+        message: `This property includes a variable reference loop! Double check that variables aren't referencing eachother.`,
+      }
+      return property.initial.values[property.initial.type]
     }
 
     property.transforms.forEach((transform, index) => {
@@ -318,74 +328,126 @@ export class Property {
         }
 
         // Get the transformed value.
-        const value = Transform.transformValue(transform, val)
+        let value: any
+
+        value = Transform.transformValue(transform, val, visited)
 
         // Handle errors
         if (typeof value === "number") {
           if (!isFinite(value) || isNaN(value)) {
-            current = {
-              ...current,
-              error: { message: "Invalid number type: " + value, index },
-            }
+            throw Error("Invalid number type: " + value)
           }
-        } else if (value === "undefined" || value === null) {
-          current = {
-            ...current,
-            error: { message: "No output value.", index },
-          }
+        } else if (value === undefined || value === null) {
+          throw Error("No output value.")
         }
 
-        current = {
-          type: transform.outputType,
-          value,
-          error: undefined,
-          warning: undefined,
-        }
+        current.type = transform.outputType
+        current.value = value
       } catch (e) {
         // Some JavaScript error has occurred (ie Number.split is not a function).
-        return {
-          ...current,
-          error: { message: "Found error: " + e.message, index },
-        }
+        property.error = { message: e, index }
       }
     })
-
-    const result = current
-
-    property.error = result.error
 
     // Variables can have any final type, we don't have to handle
     // the case where the final transform does not return a value
     // of the "correct" final type.
-    if (!property.isVariable && property.type !== result.type) {
+    if (property.__type === "property" && property.type !== current.type) {
       // Try to coerce the value into the correct type.
       property.warning = {
         index: -1,
-        message: `Transforms produced a ${result.type} instead of a ${property.type}. We've converted this into the correct type.`,
+        message: `Transforms produced a ${current.type} instead of a ${property.type}. We've converted this into the correct type.`,
       }
 
       try {
         switch (property.type) {
           case Type.Text:
-            result.value = String(result.value)
+            current.value = String(current.value)
+            break
           case Type.Number:
-            result.value = Number(result.value)
+            current.value = Number(current.value)
+            break
           case Type.Boolean:
-            result.value = Boolean(result.value)
+            current.value = Boolean(current.value)
+            break
         }
       } catch (e) {
         property.error = {
-          message: "The transformed value is invalid.",
+          message: "The transformed value is invalid: " + e.message,
           index: property.transforms.length - 1,
         }
-        result.value = property.initial.values[property.type]
+        current.value = property.initial.values[property.type]
       }
     }
 
-    return result.value
+    return current.value
   }
+}
 
-  static getType(property: IProperty) {
-    return property.type
+export class Property extends PropertyBase {
+  static create(opts: {
+    id?: string
+    scope?: string
+    name: string
+    initial: IInitial
+    transforms?: ITransform<Type, Type>[]
+  }): IProperty {
+    const {
+      id = uniqueId(String(Date.now())),
+      name,
+      scope = "global",
+      transforms = [],
+      initial,
+    } = opts
+
+    const property = {
+      __type: "property" as const,
+      id,
+      scope,
+      name,
+      type: Initial.getType(initial),
+      initial,
+      transforms,
+    }
+    if (!tables.properties.has(scope)) {
+      tables.properties.set(scope, new Map([]))
+    }
+
+    tables.properties.get(scope).set(id, property)
+    return property
+  }
+}
+
+export class Variable extends PropertyBase {
+  static create(opts: {
+    id?: string
+    scope: string
+    name: string
+    initial: IInitial
+    transforms?: ITransform<Type, Type>[]
+  }): IVariable {
+    const {
+      id = uniqueId(String(Date.now())),
+      name,
+      scope,
+      transforms = [],
+      initial,
+    } = opts
+
+    const variable = {
+      __type: "variable" as const,
+      id,
+      scope,
+      name,
+      initial,
+      transforms,
+    }
+
+    if (!tables.variables.has(scope)) {
+      tables.variables.set(scope, new Map([]))
+    }
+
+    tables.variables.get(scope).set(id, variable)
+    return variable
   }
 }

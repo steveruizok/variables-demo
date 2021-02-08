@@ -76,6 +76,7 @@ function transform<I extends Type, O extends Type>(options: {
   inputType: I
   outputType: O
   fn: TransformFn<I, O>
+  scope: string
   args?: (IProperty | IEnumerated)[]
 }): ITransform<I, O> {
   return Transform.create(options)
@@ -108,12 +109,13 @@ function enumProperty(opts: {
  * Get a transform by name.
  * @param name The name of the transform
  */
-export function getTransform(name: TransformName) {
+export function getTransform(name: TransformName, scope: string) {
   switch (name) {
     // Text to Text
     case "Join": {
       return transform({
         name: "Join",
+        scope,
         inputType: Type.Text,
         outputType: Type.Text,
         fn: (value, a, b) => value + b + a,
@@ -130,6 +132,7 @@ export function getTransform(name: TransformName) {
     case "Change Case": {
       return transform({
         name: "Change Case",
+        scope,
         inputType: Type.Text,
         outputType: Type.Text,
         fn: (v, op: "uppercase" | "lowercase" | "headline" | "sentence") =>
@@ -151,6 +154,7 @@ export function getTransform(name: TransformName) {
     case "Slice": {
       return transform({
         name: "Slice",
+        scope,
         inputType: Type.Text,
         outputType: Type.Text,
         fn: (value, a, b) =>
@@ -166,6 +170,7 @@ export function getTransform(name: TransformName) {
     case "Side": {
       return transform({
         name: "Side",
+        scope,
         inputType: Type.Text,
         outputType: Type.Text,
         fn: (value, side: "start" | "end", count: number) =>
@@ -185,6 +190,7 @@ export function getTransform(name: TransformName) {
     }
     case "Reverse": {
       return transform({
+        scope,
         name: "Reverse",
         inputType: Type.Text,
         outputType: Type.Text,
@@ -195,6 +201,7 @@ export function getTransform(name: TransformName) {
     // Text to Number
     case "Text to Number": {
       return transform({
+        scope,
         name: "Text to Number",
         inputType: Type.Text,
         outputType: Type.Number,
@@ -204,6 +211,7 @@ export function getTransform(name: TransformName) {
     }
     case "Length": {
       return transform({
+        scope,
         name: "Length",
         inputType: Type.Text,
         outputType: Type.Number,
@@ -224,6 +232,7 @@ export function getTransform(name: TransformName) {
     // Text to Boolean
     case "Contains": {
       return transform({
+        scope,
         name: "Contains",
         inputType: Type.Text,
         outputType: Type.Boolean,
@@ -245,6 +254,7 @@ export function getTransform(name: TransformName) {
     }
     case "Matches": {
       return transform({
+        scope,
         name: "Matches",
         inputType: Type.Text,
         outputType: Type.Boolean,
@@ -255,6 +265,7 @@ export function getTransform(name: TransformName) {
     // Number to Number
     case "Add": {
       return transform({
+        scope,
         name: "Add",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -264,6 +275,7 @@ export function getTransform(name: TransformName) {
     }
     case "Subtract": {
       return transform({
+        scope,
         name: "Subtract",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -275,6 +287,7 @@ export function getTransform(name: TransformName) {
     }
     case "Multiply": {
       return transform({
+        scope,
         name: "Multiply",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -284,6 +297,7 @@ export function getTransform(name: TransformName) {
     }
     case "Divide": {
       return transform({
+        scope,
         name: "Divide",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -293,6 +307,7 @@ export function getTransform(name: TransformName) {
     }
     case "Round": {
       return transform({
+        scope,
         name: "Round",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -314,6 +329,7 @@ export function getTransform(name: TransformName) {
     }
     case "Clamp": {
       return transform({
+        scope,
         name: "Clamp",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -331,6 +347,7 @@ export function getTransform(name: TransformName) {
     }
     case "Change Sign": {
       return transform({
+        scope,
         name: "Change Sign",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -351,6 +368,7 @@ export function getTransform(name: TransformName) {
     }
     case "Math": {
       return transform({
+        scope,
         name: "Math",
         inputType: Type.Number,
         outputType: Type.Number,
@@ -398,6 +416,7 @@ export function getTransform(name: TransformName) {
     // Number to Text
     case "Number to Text": {
       return transform({
+        scope,
         name: "Number to Text",
         inputType: Type.Number,
         outputType: Type.Text,
@@ -408,6 +427,7 @@ export function getTransform(name: TransformName) {
     // Number to Boolean
     case "Compare": {
       return transform({
+        scope,
         name: "Compare",
         inputType: Type.Number,
         outputType: Type.Boolean,
@@ -442,6 +462,7 @@ export function getTransform(name: TransformName) {
     // Boolean to Boolean
     case "Flip": {
       return transform({
+        scope,
         name: "Flip",
         inputType: Type.Boolean,
         outputType: Type.Boolean,
@@ -451,6 +472,7 @@ export function getTransform(name: TransformName) {
     }
     case "And": {
       return transform({
+        scope,
         name: "And",
         inputType: Type.Boolean,
         outputType: Type.Boolean,
@@ -466,6 +488,7 @@ export function getTransform(name: TransformName) {
     }
     case "Or": {
       return transform({
+        scope,
         name: "Or",
         inputType: Type.Boolean,
         outputType: Type.Boolean,
@@ -481,6 +504,7 @@ export function getTransform(name: TransformName) {
     }
     case "Nor": {
       return transform({
+        scope,
         name: "Nor",
         inputType: Type.Boolean,
         outputType: Type.Boolean,
@@ -497,6 +521,7 @@ export function getTransform(name: TransformName) {
     // Boolean to Text
     case "Boolean to Text": {
       return transform({
+        scope,
         name: "Boolean to Text",
         inputType: Type.Boolean,
         outputType: Type.Text,
@@ -506,6 +531,7 @@ export function getTransform(name: TransformName) {
     }
     case "Boolean to Number": {
       return transform({
+        scope,
         name: "Boolean to Number",
         inputType: Type.Boolean,
         outputType: Type.Number,

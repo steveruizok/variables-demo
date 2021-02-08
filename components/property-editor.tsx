@@ -10,11 +10,11 @@ import { PanelBody } from "./styled"
 import Pre from "./pre"
 
 interface PropertyEditorProps {
-  property: System.IProperty
+  property: System.IProperty | System.IVariable
 }
 
 export default function PropertyEditor({ property }: PropertyEditorProps) {
-  const isVariable = System.variables.has(property.id)
+  const isVariable = property.__type === "variable"
   const hasTransforms = property.transforms.length > 0
 
   return (
@@ -102,7 +102,11 @@ const InputsContainer = styled.div`
 //   )
 // }
 
-function TransformedValueEditor({ property }: { property: System.IProperty }) {
+function TransformedValueEditor({
+  property,
+}: {
+  property: System.IProperty | System.IVariable
+}) {
   const hasInitialVariable = !!property.initial.variable
   const initialType = System.Initial.getType(property.initial)
   const initialValue = System.Initial.getValue(property.initial)
@@ -119,7 +123,7 @@ function TransformedValueEditor({ property }: { property: System.IProperty }) {
           value={
             property.initial.variable
               ? System.Property.getType(
-                  System.variables.get(property.initial.variable)!
+                  System.getVariable(property.initial.variable)!
                 )
               : initialType
           }
@@ -141,6 +145,7 @@ function TransformedValueEditor({ property }: { property: System.IProperty }) {
             })
           }
           variable={property.initial.variable}
+          excludeVariable={{ scope: property.scope, id: property.id }}
           onVariableChange={(variable) =>
             state.send("SELECTED_VARIABLE", {
               property,
@@ -155,10 +160,12 @@ function TransformedValueEditor({ property }: { property: System.IProperty }) {
           <ul>
             {property.transforms.map((transform, index) => {
               const status = property.error
-                ? property.error.index === index
-                  ? "error"
-                  : property.error.index < index
-                  ? "warn"
+                ? property.error.index >= 0
+                  ? property.error.index === index
+                    ? "error"
+                    : property.error.index < index
+                    ? "warn"
+                    : "ok"
                   : "ok"
                 : "ok"
 
@@ -169,6 +176,7 @@ function TransformedValueEditor({ property }: { property: System.IProperty }) {
                   property={property}
                   status={status}
                   index={index}
+                  excludeVariable={{ scope: property.scope, id: property.id }}
                 />
               )
             })}
@@ -184,6 +192,8 @@ function TransformedValueEditor({ property }: { property: System.IProperty }) {
           })
         }
       />
+      {property.error && <p>Error: {property.error.message}</p>}
+      {property.warning && <p>Warning: {property.warning.message}</p>}
       <h3>Final Value</h3>
       <InputsContainer>
         <PropertyInput
@@ -192,9 +202,6 @@ function TransformedValueEditor({ property }: { property: System.IProperty }) {
           readOnly
           showVariables={false}
         />
-        {property.warning && (
-          <RawTextInput label="Warning" value={property.warning.message} />
-        )}
       </InputsContainer>
     </>
   )

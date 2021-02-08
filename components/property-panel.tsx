@@ -13,7 +13,9 @@ export default function PropertyPanel() {
   return selected ? (
     <Panel>
       <PanelHeader>
-        <h2>Selected {selected.isVariable ? "Variable" : "Property"}</h2>
+        <h2>
+          Selected {selected.__type === "variable" ? "Variable" : "Property"}
+        </h2>
         <button onClick={() => state.send("CLEARED_SELECTION")}>
           <X size={16} />
         </button>

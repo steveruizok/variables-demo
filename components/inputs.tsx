@@ -15,9 +15,10 @@ interface InputProps<T = any> {
 interface PropertyInputProps<T> extends InputProps<T> {
   label: string
   type?: System.Type
-  variable?: string
+  variable?: System.ScopedReference
   showVariables?: boolean
-  onVariableChange?: (variable?: System.IProperty) => void
+  excludeVariable?: System.ScopedReference
+  onVariableChange?: (variable?: System.Variable) => void
 }
 
 export function PropertyInput({
@@ -29,6 +30,7 @@ export function PropertyInput({
   disabled,
   showVariables = true,
   onVariableChange,
+  excludeVariable,
   ...rest
 }: PropertyInputProps<string | number | boolean>) {
   return (
@@ -62,7 +64,9 @@ export function PropertyInput({
       {showVariables && (
         <VariablePicker
           type={type}
-          value={variable}
+          scope={variable?.scope}
+          id={variable?.id}
+          exclude={excludeVariable.id}
           onChange={onVariableChange}
         />
       )}
@@ -164,14 +168,14 @@ export function RawTextInput({ label, value }: RawTextInputProps) {
 }
 
 interface VariableButtonProps {
-  variable: string
+  variable: System.ScopedReference
 }
 
 export function VariableButton({ variable }: VariableButtonProps) {
-  const result = state.data.variables.get(variable)!
+  const result = System.getVariable(variable)
   return (
     <StyledVariableButton
-      onClick={() => state.send("SELECTED_PROPERTY", { property: result })}
+      onClick={() => state.send("SELECTED", { selection: result })}
     >
       {result.name}
     </StyledVariableButton>

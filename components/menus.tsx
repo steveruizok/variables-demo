@@ -4,8 +4,8 @@ import { System } from "lib"
 import state, { useSelector } from "state"
 
 interface TransformMenuProps {
+  property: System.IProperty | System.IVariable
   transform: System.ITransform
-  property: System.IProperty
   index: number
 }
 

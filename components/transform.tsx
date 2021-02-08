@@ -8,9 +8,10 @@ import { PanelHeader, Panel } from "./styled"
 import TypeIcon from "./type-icon"
 
 interface TransformProps {
-  property: System.IProperty
+  property: System.IProperty | System.IVariable
   transform: System.ITransform
   index: number
+  excludeVariable?: System.ScopedReference
   status: "error" | "warn" | "ok"
 }
 
@@ -18,6 +19,7 @@ export default function Transform({
   property,
   transform,
   status,
+  excludeVariable,
   index,
 }: TransformProps) {
   return (
@@ -65,6 +67,7 @@ export default function Transform({
                       })
                     }
                     variable={arg.initial.variable}
+                    excludeVariable={excludeVariable}
                     onVariableChange={(variable) =>
                       state.send("SELECTED_VARIABLE", {
                         property: arg,

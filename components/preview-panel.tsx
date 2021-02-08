@@ -43,6 +43,9 @@ export default function PreviewPanel() {
                   property: title,
                 })
               }
+              // contentEditable={
+              //   !title.initial.variable && title.transforms.length === 0
+              // }
             >
               {System.Property.getValue(title)}
             </Selectable>
@@ -82,7 +85,9 @@ export default function PreviewPanel() {
             >
               <Star
                 fill={
-                  System.Property.getValue(starred) ? "#000" : "transparent"
+                  System.Property.getValue(starred)
+                    ? "var(--color-text)"
+                    : "transparent"
                 }
               />
             </Selectable>
@@ -94,36 +99,36 @@ export default function PreviewPanel() {
 }
 
 const PreviewContainer = styled(Panel)`
-  background-color: #f9f9f9;
+  background-color: var(--color-input);
 `
 
 const Selectable = styled.button<{ isActive: boolean }>`
   all: unset !important;
   cursor: pointer !important;
   outline: ${({ isActive }) =>
-    isActive ? "1px solid #2d5eff !important" : "auto"};
+    isActive ? "1px solid var(--color-active) !important" : "auto"};
   &:hover {
-    outline: 1px solid #2d5eff !important;
+    outline: 1px solid var(--color-active) !important;
   }
 `
 
 const InnerContainer = styled(PanelBody)`
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: var(--spacing-4);
 `
 
 const CardContainer = styled(Panel)`
   display: grid;
   width: 50%;
   min-width: 320px;
-  background-color: #ffffff;
-  padding: 8px;
+  background-color: var(--color-background);
+  padding: var(--spacing-1);
 `
 
 const DetailsRow = styled.div`
   display: grid;
   grid-template-columns: 1fr auto auto;
-  grid-gap: 8px;
+  grid-gap: var(--spacing-1);
   align-items: center;
 `

@@ -1,3 +1,34 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap");
+
+:root {
+  --spacing-0: 4px;
+  --spacing-1: 8px;
+  --spacing-1-5: 10px;
+  --spacing-2: 12px;
+  --spacing-3: 16px;
+  --spacing-4: 24px;
+  --size-0: 12px;
+  --size-1: 14px;
+  --size-2: 16px;
+  --radius-0: 2px;
+  --radius-2: 4px;
+  --radius-3: 8px;
+  --color-text: black;
+  --color-background: white;
+  --color-border: rgba(144, 144, 144, 0.5);
+  --color-active: blue;
+  --color-active-background: rgb(226, 231, 255);
+  --color-transformed: cornflowerblue;
+  --color-variable: magenta;
+  --color-input: #fcfcfc;
+  --color-shade-0: #767676;
+  --color-shadow-0: rgba(0, 0, 0, 0.05);
+  --color-shadow-1: rgba(255, 255, 255, 0.2);
+  --color-error-0: rgba(255, 100, 100, 0.5);
+  --color-error-1: rgba(255, 100, 100, 0.25);
+  --height-input: 40px;
+}
+
 * {
   box-sizing: border-box;
 }

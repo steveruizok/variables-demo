@@ -179,20 +179,19 @@ export function VariableButton({ variable }: VariableButtonProps) {
 }
 
 const StyledVariableButton = styled.button`
-  background-color: rgba(255, 100, 200, 0.1);
   text-align: left;
 `
 
 const InputContainer = styled.div`
   display: grid;
-  padding: 16px;
+  padding: var(--spacing-3);
   align-items: center;
   grid-template-columns: auto 80px minmax(0, 1fr);
   grid-auto-columns: auto;
   grid-auto-flow: column;
-  grid-gap: 8px;
+  grid-gap: var(--spacing-1);
 
   &:nth-of-type(n + 2) {
-    border-top: 1px solid rgba(144, 144, 144, 0.5);
+    border-top: 1px solid var(--color-border);
   }
 `

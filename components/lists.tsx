@@ -2,13 +2,14 @@ import { System } from "lib"
 import * as React from "react"
 import styled from "styled-components"
 import { useStateDesigner } from "@state-designer/react"
-import state, { useSelector } from "state"
+import state from "state"
 import TypeIcon from "./type-icon"
-import { Panel, PanelHeader, PanelBody } from "./styled"
 
 export function PropertiesList() {
-  const { data } = useStateDesigner(state)
-  const properties = Array.from(data.properties.values())
+  const {
+    data,
+    values: { properties },
+  } = useStateDesigner(state)
 
   const propertiesByType = Object.entries(
     properties.reduce((acc, cur) => {
@@ -31,6 +32,8 @@ export function PropertiesList() {
                 <PropertyButton
                   property={property}
                   isActive={data.selected === property.id}
+                  type={System.Property.getType(property)}
+                  value={System.Property.getValue(property)}
                 />
               </li>
             ))}
@@ -38,32 +41,6 @@ export function PropertiesList() {
         </li>
       ))}
     </ul>
-  )
-}
-
-function PropertyButton({
-  property,
-  isActive,
-}: {
-  property: System.IProperty
-  isActive: boolean
-}) {
-  return (
-    <StyledButton
-      isActive={isActive}
-      hasError={!!property.error}
-      onClick={() =>
-        state.send("SELECTED_PROPERTY", {
-          property: property,
-        })
-      }
-    >
-      <TypeIcon type={System.Property.getType(property)} />
-      <div>
-        <b>{property.name}</b>
-      </div>
-      <div>{String(System.Property.getValue(property))}</div>
-    </StyledButton>
   )
 }
 
@@ -90,9 +67,11 @@ export function VariablesList() {
             {vars.map((variable) => {
               return (
                 <li key={variable.id}>
-                  <VariableButton
-                    variable={variable}
+                  <PropertyButton
+                    property={variable}
                     isActive={data.selected === variable.id}
+                    type={System.Property.getType(variable)}
+                    value={System.Property.getValue(variable)}
                   />
                 </li>
               )
@@ -109,60 +88,65 @@ export function VariablesList() {
   )
 }
 
-function VariableButton({
-  variable,
+function PropertyButton({
+  property,
   isActive,
+  type,
+  value,
 }: {
-  variable: System.IProperty
+  property: System.IProperty
   isActive: boolean
+  type: System.Type
+  value: System.ValueTypes[System.Type]
 }) {
   return (
     <StyledButton
       isActive={isActive}
+      hasError={!!property.error}
       onClick={() =>
         state.send("SELECTED_PROPERTY", {
-          property: variable,
+          property: property,
         })
       }
     >
-      <TypeIcon type={System.Property.getType(variable)} />
+      <TypeIcon
+        type={type}
+        variant={
+          property.transforms.length > 0
+            ? "transformed"
+            : property.initial.variable
+            ? "variable"
+            : undefined
+        }
+      />
       <div>
-        <b>{variable.name}</b>
+        <b>{property.name}</b>
       </div>
-      <div>{String(System.Property.getValue(variable))}</div>{" "}
+      <div>{String(value)}</div>
     </StyledButton>
   )
 }
 
-const StyledButton = styled.button<{ hasError?: boolean; isActive: boolean }>`
+const StyledButton = styled.button<{
+  hasError?: boolean
+  isActive: boolean
+}>`
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr minmax(0, auto);
-  grid-gap: 8px;
+  grid-gap: var(--spacing-1);
   align-items: center;
   text-align: left;
   overflow: hidden;
   width: 100%;
   white-space: nowrap;
-  border-radius: 4px;
+  border-radius: var(--radius-2);
   background-color: ${({ hasError, isActive }) =>
     hasError
-      ? "rgba(200, 50, 50, .2)"
+      ? "var(--color-error-0)"
       : isActive
-      ? "rgba(50,50,200,.2)"
-      : "#f9f9f9"} !important;
-
-  ::after {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    width: 12px;
-    height: calc(100% - 2px);
-    background-color: rgba(255, 255, 255, 0.2);
-    opacity: 0.8;
-  }
+      ? "var(--color-active-background)"
+      : "var(--color-input)"} !important;
 `
 
 const AddNewButton = styled.button`

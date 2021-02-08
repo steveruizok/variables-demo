@@ -8,9 +8,10 @@
     "start": "next start"
   },
   "dependencies": {
-    "@state-designer/react": "^1.4.4",
+    "@state-designer/react": "^1.4.5",
     "lodash": "^4.17.20",
     "next": "10.0.6",
+    "prismjs": "^1.23.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-feather": "^2.0.9",

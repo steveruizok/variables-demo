@@ -39,11 +39,11 @@ export default function VariablePicker({
 }
 
 const SelectWrapper = styled.div<{ hasVariable: boolean }>`
-  height: 40px;
-  width: 40px;
-  background-color: #fcfcfc;
-  border: 1px solid #767676;
-  border-radius: 4px;
+  height: var(--height-input);
+  width: var(--height-input);
+  background-color: var(--color-input);
+  border: 1px solid var(--color-shade-0);
+  border-radius: var(--radius-2);
   position: relative;
   display: flex;
   align-items: center;

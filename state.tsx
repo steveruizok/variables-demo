@@ -1,4 +1,5 @@
 import { createState, createSelectorHook } from "@state-designer/react"
+import { System } from "./lib"
 import {
   Type,
   Property,
@@ -22,7 +23,7 @@ export type Data = {
 const allTypes = [Type.Text, Type.Boolean, Type.Number]
 
 export const initialData: Data = {
-  version: 4,
+  version: 7,
   selected: undefined,
   properties: new Map([
     [
@@ -96,14 +97,6 @@ if (typeof window !== "undefined") {
   const local = JSON.parse(localStorage.getItem("play_vars") || "{}")
 
   if (local.version === initialData.version) {
-    initialData.properties.clear()
-    for (let property of local.properties) {
-      property.transforms.forEach((transform: ITransform) => {
-        const source = Transforms.getTransform(transform.name)
-        transform.fn = source.fn as any
-      })
-      initialData.properties.set(property.id, property)
-    }
     initialData.variables.clear()
     for (let variable of local.variables) {
       variable.transforms.forEach((transform: ITransform) => {
@@ -111,6 +104,16 @@ if (typeof window !== "undefined") {
         transform.fn = source.fn as any
       })
       initialData.variables.set(variable.id, variable)
+      System.variables.set(variable.id, variable)
+    }
+    initialData.properties.clear()
+    for (let property of local.properties) {
+      property.transforms.forEach((transform: ITransform) => {
+        const source = Transforms.getTransform(transform.name)
+        transform.fn = source.fn as any
+      })
+      initialData.properties.set(property.id, property)
+      System.properties.set(property.id, property)
     }
   }
 }
@@ -121,6 +124,7 @@ const state = createState({
     RESTORED_PROPERTY: "restoreProperty",
     RESTORED_VARAIBLE: "restoreVariable",
     SELECTED_PROPERTY: "selectProperty",
+    CLEARED_SELECTION: "clearSelectedProperty",
     CHANGED_NAME: "changeName",
     CHANGED_INITIAL_TYPE: "changeInitialType",
     CHANGED_INITIAL_VALUE: "changeInitialValue",
@@ -136,6 +140,9 @@ const state = createState({
     selectProperty(data, payload: { property: IProperty }) {
       const { property } = payload
       data.selected = property?.id
+    },
+    clearSelectedProperty(data) {
+      data.selected = undefined
     },
     changeName(
       _,
@@ -257,6 +264,12 @@ const state = createState({
         (data.properties.get(data.selected) ||
           data.variables.get(data.selected))
       )
+    },
+    properties(data) {
+      return Array.from(data.properties.values())
+    },
+    variables(data) {
+      return Array.from(data.variables.values())
     },
   },
 })

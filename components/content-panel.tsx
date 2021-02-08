@@ -10,10 +10,8 @@ export default function ContentPanel() {
         <h2>Content</h2>
       </PanelHeader>
       <PanelBody>
-        <h3 style={{ marginTop: 0, borderTop: "none" }}>Properties</h3>
+        <h3>Properties</h3>
         <PropertiesList />
-      </PanelBody>
-      <PanelBody>
         <h3>Variables</h3>
         <VariablesList />
       </PanelBody>

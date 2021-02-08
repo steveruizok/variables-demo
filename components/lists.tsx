@@ -112,5 +112,5 @@ const StyledButton = styled.button<{
       ? "var(--color-error-0)"
       : isActive
       ? "var(--color-active-background)"
-      : "var(--color-input)"};
+      : "var(--color-input)"} !important;
 `

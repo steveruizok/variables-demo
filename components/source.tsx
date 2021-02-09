@@ -7,7 +7,7 @@ import { Eye, EyeOff } from "react-feather"
 import state, { useSelector } from "state"
 
 interface SourceProps {
-  source: System.IVariable | System.IProperty
+  source: any
 }
 
 export default function Source({ source }: SourceProps) {

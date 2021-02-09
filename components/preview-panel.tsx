@@ -7,14 +7,14 @@ import { Panel, PanelBody, PanelHeader } from "./styled"
 import { Star } from "react-feather"
 
 export default function PreviewPanel() {
-  const { data } = useStateDesigner(state)
+  const { data, values } = useStateDesigner(state)
 
   function getProperty(id: string) {
-    return data.properties.get("global").get(id)!
+    return data.properties["global"][id]
   }
 
   function isActive(property: System.IProperty | System.IVariable) {
-    return data.selected?.id === property.id
+    return values.selected?.id === property.id
   }
 
   const title = getProperty("title")

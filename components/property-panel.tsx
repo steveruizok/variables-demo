@@ -4,12 +4,12 @@ import state from "state"
 import PropertyEditor from "./property-editor"
 import { Panel, PanelStack, PanelBody, PanelHeader, IconButton } from "./styled"
 import { useStateDesigner } from "@state-designer/react"
-import { Trash, X } from "react-feather"
+import { Trash, X, ArrowLeft } from "react-feather"
 import Source from "./source"
 
 export default function PropertyPanel() {
   const {
-    data: { showSource },
+    data: { stack },
     values: { selected },
   } = useStateDesigner(state)
 
@@ -17,10 +17,7 @@ export default function PropertyPanel() {
     <PanelStack>
       <Panel>
         <PanelHeader>
-          <h2>
-            Selected{" "}
-            {/* {selected.__type === "variable" ? "Variable" : "Property"} */}
-          </h2>
+          <h2>Selected</h2>
           {selected && (
             <ButtonRow>
               {selected.__type === "variable" && (
@@ -37,7 +34,7 @@ export default function PropertyPanel() {
                 title="Close"
                 onClick={() => state.send("CLEARED_SELECTION")}
               >
-                <X size={16} />
+                {stack.length > 1 ? <ArrowLeft size={16} /> : <X size={16} />}
               </IconButton>
             </ButtonRow>
           )}

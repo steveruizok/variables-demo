@@ -1,7 +1,7 @@
 import { System } from "lib"
 import styled from "styled-components"
 import state from "state"
-import { ArrowRight } from "react-feather"
+import { ArrowRight, AlertOctagon } from "react-feather"
 import { EnumInput, PropertyInput } from "./inputs"
 import { TransformMenu } from "./menus"
 import { PanelHeader, Panel } from "./styled"
@@ -12,16 +12,24 @@ interface TransformProps {
   transform: System.ITransform
   index: number
   excludeVariable?: System.ScopedReference
-  status: "error" | "warn" | "ok"
 }
 
 export default function Transform({
   property,
   transform,
-  status,
   excludeVariable,
   index,
 }: TransformProps) {
+  const status = property.error
+    ? property.error.index >= 0
+      ? property.error.index === index
+        ? "error"
+        : property.error.index < index
+        ? "warn"
+        : "ok"
+      : "ok"
+    : "ok"
+
   return (
     <TransformContainer key={transform.id} status={status}>
       <TransformHeader>
@@ -53,21 +61,32 @@ export default function Transform({
                 </li>
               )
             } else {
-              arg = arg as System.IProperty
+              const property = System.getProperty(arg)
+
               return (
-                <li key={arg.id}>
+                <li key={property.id}>
                   <PropertyInput
-                    label={arg.name}
-                    value={System.Property.getValue(arg)}
-                    disabled={!!arg.initial.variable}
+                    label={property.name}
+                    value={System.Property.getValue(property)}
+                    disabled={!!property.initial.variable}
+                    property={property}
+                    variable={property.initial.variable}
+                    excludeVariable={excludeVariable}
                     onChange={(value) =>
                       state.send("CHANGED_INITIAL_VALUE", {
-                        property: arg,
+                        property,
                         value,
                       })
                     }
-                    variable={arg.initial.variable}
-                    excludeVariable={excludeVariable}
+                    onEdit={() =>
+                      state.send("SELECTED", {
+                        selection: property,
+                        stack: true,
+                      })
+                    }
+                    onTransformDetach={() => {
+                      state.send("DETACHED_TRANSFORM", { property })
+                    }}
                     onVariableChange={(variable) =>
                       state.send("SELECTED_VARIABLE", {
                         property: arg,
@@ -90,7 +109,10 @@ export default function Transform({
         {String(transform.returnedValue)}
       </ReturnedValue>
       {status === "error" && (
-        <ErrorMessage>{property.error?.message}</ErrorMessage>
+        <ErrorMessage>
+          <AlertOctagon size={16} />
+          {property.error?.message}
+        </ErrorMessage>
       )}
     </TransformContainer>
   )
@@ -123,6 +145,7 @@ const TransformHeader = styled(PanelHeader)`
   grid-auto-flow: column;
   grid-template-columns: 1fr;
   grid-auto-columns: auto;
+  border-bottom: 1px solid var(--color-border-0);
   padding: var(--spacing-1) var(--spacing-2);
   gap: var(--spacing-1);
 
@@ -131,7 +154,7 @@ const TransformHeader = styled(PanelHeader)`
   }
 `
 
-const ReturnedValue = styled.p`
+const ReturnedValue = styled.div`
   display: grid;
   grid-gap: var(--spacing-1);
   grid-template-columns: auto 1fr;
@@ -143,10 +166,13 @@ const ReturnedValue = styled.p`
   text-align: right;
 `
 
-const ErrorMessage = styled.p`
-  padding: var(--spacing-1) var(--spacing-2) var(--spacing-2) var(--spacing-2);
+const ErrorMessage = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
   margin: 0;
-  text-align: center;
+  text-align: left;
   border-top: 1px solid var(--color-border-0);
 `
 

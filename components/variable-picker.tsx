@@ -10,7 +10,7 @@ interface VariablePickerProps {
   id?: string
   scope?: string
   exclude?: string
-  onDetatch?: () => void
+  onDetach?: () => void
   onChange?: (variable?: System.IVariable) => void
 }
 
@@ -20,10 +20,10 @@ export default function VariablePicker({
   scope = "global",
   exclude,
   onChange,
-  onDetatch,
+  onDetach,
 }: VariablePickerProps) {
   const variables = useSelector((state) => state.data.variables)
-  const variablesArray = Array.from(variables.get(scope).values()).filter(
+  const variablesArray = Object.values(variables[scope]).filter(
     (v) => v.id !== exclude
   )
 
@@ -32,8 +32,8 @@ export default function VariablePicker({
       <select
         value={id || ""}
         onChange={({ currentTarget: { value } }) => {
-          if (value === "Detatch") {
-            onDetatch()
+          if (value === "Detach") {
+            onDetach && onDetach()
             return
           }
 
@@ -43,16 +43,20 @@ export default function VariablePicker({
           onChange?.(variable)
         }}
       >
-        <option value={""}>{id ? "Remove" : "None"}</option>
-        {id && <option>Detatch</option>}
-        {(type
-          ? variablesArray.filter((v) => System.Property.getType(v) === type)
-          : variablesArray
-        ).map((variable, i) => (
-          <option key={i} value={variable.id}>
-            {variable.name}
-          </option>
-        ))}
+        <optgroup label="Options">
+          {onDetach && <option>Detach</option>}
+          <option value={""}>{id ? "Remove" : "None"}</option>
+        </optgroup>
+        <optgroup label="Variables">
+          {(type
+            ? variablesArray.filter((v) => System.Property.getType(v) === type)
+            : variablesArray
+          ).map((variable, i) => (
+            <option key={i} value={variable.id}>
+              {variable.name}
+            </option>
+          ))}
+        </optgroup>
       </select>
       <Radio size={16} />
     </IconSelect>

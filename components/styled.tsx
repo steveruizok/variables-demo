@@ -19,30 +19,16 @@ export const PanelBody = styled.div`
   display: grid;
   grid-gap: var(--spacing-4);
   grid-auto-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--color-border-0);
 `
 
 export const PanelHeader = styled.div`
   background-color: var(--color-surface-0);
-  padding: var(--spacing-1);
-  border-bottom: 1px solid var(--color-border-0);
+  padding: var(--spacing-1) var(--spacing-2);
   height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-`
-
-export const InputContainer = styled.div`
-  display: grid;
-  padding: var(--spacing-3) var(--spacing-2);
-  align-items: center;
-  grid-template-columns: auto 80px minmax(0, 1fr);
-  grid-auto-columns: auto;
-  grid-auto-flow: column;
-  grid-gap: var(--spacing-1);
-
-  &:nth-of-type(n + 2) {
-    border-top: 1px solid var(--color-border-0);
-  }
 `
 
 export const InputsContainer = styled.div`
@@ -53,7 +39,7 @@ export const InputsContainer = styled.div`
 
 export const Button = styled.button<{
   hasError?: boolean
-  isActive?: boolean
+  isSelected?: boolean
 }>`
   cursor: pointer;
   border: 1px solid var(--color-border-0);
@@ -65,10 +51,10 @@ export const Button = styled.button<{
   width: 100%;
   white-space: nowrap;
   border-radius: var(--radius-2);
-  background-color: ${({ hasError = false, isActive = false }) =>
+  background-color: ${({ hasError = false, isSelected = false }) =>
     hasError
       ? "var(--color-error-0)"
-      : isActive
+      : isSelected
       ? "var(--color-surface-2)"
       : "var(--color-surface-1)"};
 

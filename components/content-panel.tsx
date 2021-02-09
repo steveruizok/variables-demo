@@ -3,8 +3,11 @@ import * as React from "react"
 import { VariablesList, PropertiesList } from "./lists"
 import { Panel, PanelStack, PanelBody, PanelHeader, Button } from "./styled"
 import state from "state"
+import Source from "./source"
+import { useStateDesigner } from "@state-designer/react"
 
 export default function ContentPanel() {
+  useStateDesigner(state)
   return (
     <PanelStack>
       <Panel>
@@ -30,6 +33,7 @@ export default function ContentPanel() {
           </Button>
         </PanelBody>
       </Panel>
+      <Source source={state.data.properties} />
     </PanelStack>
   )
 }

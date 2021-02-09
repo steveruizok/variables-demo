@@ -4,12 +4,14 @@ import { System } from "lib"
 import VariablePicker from "./variable-picker"
 import TypeIcon from "./type-icon"
 import state from "state"
-import { InputContainer, Button, Select } from "./styled"
+import { Edit } from "react-feather"
+import { IconButton, Button, Select } from "./styled"
 
 interface InputProps<T = any> {
   disabled?: boolean
   readOnly?: boolean
   onChange?: (value: T) => void
+  property?: System.IProperty
   value: T
 }
 
@@ -20,31 +22,39 @@ interface PropertyInputProps<T> extends InputProps<T> {
   showVariables?: boolean
   excludeVariable?: System.ScopedReference
   onVariableChange?: (variable?: System.Variable) => void
-  onVariableDetatch?: () => void
+  onTransformDetach: () => void
+  onVariableDetach?: () => void
+  onEdit?: () => void
 }
 
 export function PropertyInput({
   label,
-  value,
   type,
+  value,
   variable,
   readOnly,
   disabled,
   showVariables = true,
+  onEdit,
+  onTransformDetach,
   onVariableChange,
-  onVariableDetatch,
+  onVariableDetach,
   excludeVariable,
+  property,
   ...rest
 }: PropertyInputProps<string | number | boolean>) {
   return (
-    <InputContainer>
+    <InputContainer label={label}>
       <TypeIcon type={type || (typeof value as System.Type)} />
-      <label>{label}</label>
-      {variable ? (
+      {label}
+      {property?.transforms.length > 0 ? (
+        <StyledTransformButton onClick={onEdit}>{value}</StyledTransformButton>
+      ) : variable ? (
         <VariableButton variable={variable} />
       ) : typeof value === "string" ? (
         <TextInput
           {...rest}
+          property={property}
           value={value}
           disabled={disabled}
           readOnly={!!variable || readOnly}
@@ -52,6 +62,7 @@ export function PropertyInput({
       ) : typeof value === "number" ? (
         <NumberInput
           {...rest}
+          property={property}
           value={value}
           disabled={disabled}
           readOnly={!!variable || readOnly}
@@ -59,6 +70,7 @@ export function PropertyInput({
       ) : (
         <BooleanInput
           {...rest}
+          property={property}
           value={value}
           disabled={disabled}
           readOnly={!!variable || readOnly}
@@ -71,8 +83,13 @@ export function PropertyInput({
           id={variable?.id}
           exclude={excludeVariable.id}
           onChange={onVariableChange}
-          onDetatch={onVariableDetatch}
+          onDetach={onVariableDetach}
         />
+      )}
+      {onEdit && (
+        <IconButton onClick={onEdit}>
+          <Edit size={16} />
+        </IconButton>
       )}
     </InputContainer>
   )
@@ -106,7 +123,7 @@ function TextInput({
       disabled={disabled}
       readOnly={readOnly}
       value={value}
-      onChange={(e) => onChange?.(String(e.target.value))}
+      onChange={(e) => onChange?.(e.target.value ? String(e.target.value) : "")}
     />
   )
 }
@@ -143,7 +160,7 @@ export function EnumInput({
   value,
 }: EnumInputProps) {
   return (
-    <InputContainer>
+    <InputContainer label={label}>
       <TypeIcon type={"enum"} />
       <label>{label}</label>
       <Select
@@ -166,7 +183,7 @@ interface RawTextInputProps {
 
 export function RawTextInput({ label, value }: RawTextInputProps) {
   return (
-    <InputContainer>
+    <InputContainer label={label}>
       <label>{label}</label>
       <p style={{ gridColumn: "span 3" }}>{value}</p>
     </InputContainer>
@@ -189,6 +206,12 @@ export function VariableButton({ variable }: VariableButtonProps) {
   )
 }
 
+const StyledTransformButton = styled(Button)`
+  color: var(--color-transformed) !important;
+  height: var(--size-3);
+  padding: 0;
+`
+
 const StyledVariableButton = styled(Button)`
   text-align: left;
   padding: var(--spacing-1-5) var(--spacing-2);
@@ -199,5 +222,23 @@ const StyledVariableButton = styled(Button)`
 
 const BooleanInputContainer = styled.div`
   display: flex;
+  height: var(--size-3);
+  align-items: center;
   justify-content: flex-end;
+`
+
+const InputContainer = styled.div<{ label?: string }>`
+  display: grid;
+  padding: var(--spacing-3) var(--spacing-2);
+  align-items: center;
+  text-align: left;
+  grid-template-columns: ${({ label }) =>
+    !!label ? "auto 80px minmax(0, 1fr)" : "auto minmax(0, 1fr)"};
+  grid-auto-columns: auto;
+  grid-auto-flow: column;
+  grid-gap: var(--spacing-1);
+
+  &:nth-of-type(n + 2) {
+    border-top: 1px solid var(--color-border-0);
+  }
 `

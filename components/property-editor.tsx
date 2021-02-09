@@ -1,11 +1,10 @@
 /* eslint-disable */
-import styled from "styled-components"
-import { System } from "lib"
 import state from "state"
+import { System } from "lib"
+import { coerceValue } from "utils"
 import Transform from "./transform"
 import TransformPicker from "./transform-picker"
 import { PropertyInput, EnumInput } from "./inputs"
-import { coerceValue } from "utils"
 import { PanelBody, InputsContainer } from "./styled"
 
 interface PropertyEditorProps {
@@ -73,7 +72,7 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
               variable,
             })
           }
-          onVariableDetatch={() =>
+          onVariableDetach={() =>
             state.send("DETACHED_VARIABLE", {
               property,
             })
@@ -85,22 +84,11 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
       {property.transforms.length > 0 && (
         <ul>
           {property.transforms.map((transform, index) => {
-            const status = property.error
-              ? property.error.index >= 0
-                ? property.error.index === index
-                  ? "error"
-                  : property.error.index < index
-                  ? "warn"
-                  : "ok"
-                : "ok"
-              : "ok"
-
             return (
               <Transform
                 key={transform.id}
                 transform={transform}
                 property={property}
-                status={status}
                 index={index}
                 excludeVariable={{
                   __type: "variable",
@@ -131,7 +119,7 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
           showVariables={false}
         />
       </InputsContainer>
-      {property.error && (
+      {property.error && property.error.index < 0 && (
         <>
           <hr />
           <h3>Error</h3>

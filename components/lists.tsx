@@ -6,76 +6,106 @@ import styled from "styled-components"
 import { Button } from "./styled"
 import TypeIcon from "./type-icon"
 
-export function PropertiesList() {
-  const { data, values } = useStateDesigner(state)
+export function ScopedPropertiesList({
+  scope,
+  depth,
+}: {
+  scope: string
+  depth: number
+}) {
+  const {
+    values: { selected },
+    data: { stack, properties },
+  } = useStateDesigner(state)
 
-  const properties = values.properties
+  const list: System.IProperty[] = Object.values(properties[scope])
 
   return (
     <ul>
-      {properties[0].members.map((property, i) => (
-        <li key={property.id}>
-          <PropertyButton
-            property={property}
-            isActive={data.selected?.id === property.id}
-            type={System.Property.getType(property)}
-            value={System.Property.getValue(property)}
-          />
-        </li>
-      ))}
+      {list.map((property, i) => {
+        const children = Object.values(properties[property.id] || {})
+
+        const isActive = stack.find((ref) => ref.id === property.id)
+        const isSelected = selected?.id === property.id
+
+        return (
+          <li key={property.id}>
+            <PropertyButton
+              property={property}
+              isSelected={isSelected}
+              type={System.Property.getType(property)}
+              value={System.Property.getValue(property)}
+              onClick={() =>
+                state.send("SELECTED_AT_DEPTH", {
+                  selection: property,
+                  depth,
+                })
+              }
+            />
+            {isActive && children && children.length > 0 && (
+              <ScopedPropertiesList scope={property.id} depth={depth + 1} />
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }
 
+export function PropertiesList() {
+  return <ScopedPropertiesList scope="global" depth={0} />
+}
+
 export function VariablesList() {
-  const { data, values } = useStateDesigner(state)
-  const variables = values.variables
+  const {
+    values: { selected },
+    data: { variables },
+  } = useStateDesigner(state)
+
+  const list = Object.values(variables.global)
 
   return (
     <ul>
-      {variables.map(({ name, members }, i) => (
-        <li key={i}>
-          <ul>
-            {members.map((variable) => {
-              return (
-                <li key={variable.id}>
-                  <PropertyButton
-                    property={variable}
-                    isActive={data.selected?.id === variable.id}
-                    type={System.Variable.getType(variable)}
-                    value={System.Variable.getValue(variable)}
-                  />
-                </li>
-              )
-            })}
-          </ul>
-        </li>
-      ))}
+      {list.map((variable) => {
+        return (
+          <li key={variable.id}>
+            <PropertyButton
+              property={variable}
+              isSelected={selected?.id === variable.id}
+              type={System.Variable.getType(variable)}
+              value={System.Variable.getValue(variable)}
+              onClick={() =>
+                state.send("SELECTED", {
+                  selection: variable,
+                })
+              }
+            />
+          </li>
+        )
+      })}
     </ul>
   )
 }
 
 function PropertyButton({
   property,
-  isActive,
+  isSelected,
   type,
   value,
+  onClick,
 }: {
   property: System.IProperty | System.IVariable
-  isActive: boolean
+  isSelected: boolean
   type: System.Type
   value: System.ValueTypes[System.Type]
+  onClick?: () => void
 }) {
   return (
     <StyledButton
       title="Select property"
-      isActive={isActive}
+      isSelected={isSelected}
       hasError={!!property.error}
-      onClick={() =>
-        state.send("SELECTED", {
-          selection: property,
-        })
-      }
+      onClick={onClick}
     >
       <TypeIcon
         type={type}

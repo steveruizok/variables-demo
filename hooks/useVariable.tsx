@@ -1,5 +1,5 @@
 import { useSelector } from "state"
 
-export default function useVariable(id: string) {
-  return useSelector((state) => state.data.variables.get(id))
+export default function useVariable(scope: string, id: string) {
+  return useSelector((state) => state.data.variables[scope][id])
 }

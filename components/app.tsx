@@ -73,21 +73,13 @@ const AppContainer = styled.div`
     margin: 0;
     opacity: 0.7;
     padding: 0 var(--spacing-2) 0 var(--spacing-2);
-
-    /* ::after {
-      display: block;
-      content: "";
-      border-bottom: 1px solid var(--color-border-0);
-      position: relative;
-      top: calc(-0.75 * var(--size-0));
-      margin: 0 calc(-1 * var(--spacing-4));
-    } */
   }
 
   hr {
-    margin: var(--spacing-1) calc(-1 * var(--spacing-2)) var(--spacing-1)
+    margin: var(--spacing-1) calc(-1 * var(--spacing-2)) 0
       calc(-1 * var(--spacing-2));
     border: none;
+    padding: 0;
     border-top: 1px solid var(--color-border-0);
   }
 
@@ -160,6 +152,11 @@ const AppContainer = styled.div`
   input[type="number"] {
     text-align: right;
     height: var(--size-3);
+    &:read-only,
+    :disabled {
+      border: 1px solid transparent;
+      background-color: transparent;
+    }
     :hover:enabled:not(:read-only) {
       border: 1px solid var(--color-border-2);
     }
@@ -199,7 +196,12 @@ const AppContainer = styled.div`
     display: grid;
     margin: 0;
     padding: 0;
-    gap: var(--spacing-1);
+    gap: var(--spacing-2);
+  }
+
+  li > ul {
+    padding-top: var(--spacing-2);
+    padding-left: var(--spacing-4);
   }
 
   & pre {

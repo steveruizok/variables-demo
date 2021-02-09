@@ -1,3 +1,4 @@
+import { table } from "console"
 import uniqueId from "lodash/uniqueId"
 import { coerceValue } from "utils"
 import { TransformName } from "./transforms"
@@ -20,14 +21,13 @@ export const defaultValues: ValueTypes = {
   [Type.Boolean]: true,
 }
 
-export type Properties = Map<string, Map<string, IProperty>>
-export type Variables = Map<string, Map<string, IVariable>>
+export type Properties = Record<string, Record<string, IProperty>>
+export type Variables = Record<string, Record<string, IVariable>>
+export type Tables = { properties: Properties; variables: Variables }
 
-export const tables = {
-  properties: new Map([
-    ["global", new Map<string, IProperty>([])],
-  ]) as Properties,
-  variables: new Map([["global", new Map<string, IVariable>([])]]) as Variables,
+export const tables: Tables = {
+  properties: { global: {} },
+  variables: { global: {} },
 }
 
 export interface ScopedReference {
@@ -37,11 +37,11 @@ export interface ScopedReference {
 }
 
 export function getVariable(ref: ScopedReference) {
-  return tables.variables.get(ref.scope).get(ref.id)
+  return tables.variables[ref.scope][ref.id]
 }
 
 export function getProperty(ref: ScopedReference) {
-  return tables.properties.get(ref.scope).get(ref.id)
+  return tables.properties[ref.scope][ref.id]
 }
 
 /* ----------------- Initial Values ----------------- */
@@ -107,7 +107,7 @@ export class Initial {
     value.variable = reference
   }
 
-  static detatchVariable(value: IInitial) {
+  static detachVariable(value: IInitial) {
     const variable = getVariable(value.variable)
     const v = Variable.getValue(variable)
     value.values[typeof v] = v
@@ -174,7 +174,7 @@ export interface ITransform<I extends Type = Type, O extends Type = Type> {
   inputType: I
   outputType: O
   fn: TransformFn<I, O>
-  args: (IProperty | IEnumerated)[]
+  args: (ScopedReference | IEnumerated<string>)[]
   returnedValue?: ValueTypes[O]
 }
 
@@ -188,11 +188,27 @@ export class Transform {
     fn: TransformFn<I, O>
     args?: (IProperty | IEnumerated)[]
   }): ITransform<I, O> {
-    const { id = uniqueId(String(Date.now())), args = [], ...rest } = opts
+    const {
+      id = uniqueId(String(Date.now())),
+      args = [],
+      name,
+      scope,
+      ...rest
+    } = opts
     return {
       __type: "transform" as const,
+      scope,
       id,
-      args,
+      name,
+      args: args.map((arg) =>
+        arg.__type === "enumerated"
+          ? arg
+          : {
+              __type: arg.__type,
+              id: arg.id,
+              scope: (arg as IProperty).scope,
+            }
+      ),
       ...rest,
     }
   }
@@ -206,12 +222,17 @@ export class Transform {
       if (arg.__type === "enumerated") {
         return Enumerated.getValue(arg)
       }
-      const value = Property.getValue(arg, visited)
-      if (arg.error) {
-        throw arg.error.message
+
+      const property = getProperty(arg)
+
+      const value = Property.getValue(property, visited)
+
+      if (property.error) {
+        throw Error(property.error.message)
       }
       return value
     })
+
     transform.returnedValue = transform.fn(value, ...vals)
     return transform.returnedValue
   }
@@ -275,6 +296,7 @@ export class PropertyBase {
     property: IProperty | IVariable,
     transform: ITransform<Type, Type>
   ) {
+    delete tables.properties[transform.scope][transform.id]
     property.transforms.splice(property.transforms.indexOf(transform), 1)
     return property
   }
@@ -359,9 +381,7 @@ export class PropertyBase {
         }
 
         // Get the transformed value.
-        let value: any
-
-        value = Transform.transformValue(transform, val, visited)
+        let value = Transform.transformValue(transform, val, visited)
 
         // Handle errors
         if (typeof value === "number") {
@@ -375,11 +395,13 @@ export class PropertyBase {
         current.type = transform.outputType
         current.value = value
       } catch (e) {
-        current.value = property.initial.values[property.initial.type]
         // Some JavaScript error has occurred (ie Number.split is not a function).
-        property.error = { message: e.message, index }
+        current.error = { message: e.message, index }
+        current.value = property.initial.values[property.initial.type]
       }
     })
+
+    property.error = current.error
 
     // Variables can have any final type, we don't have to handle
     // the case where the final transform does not return a value
@@ -404,16 +426,17 @@ export class PropertyBase {
             break
         }
 
+        // Handle errors (again)
         if (typeof current.value === "number") {
           if (!isFinite(current.value) || isNaN(current.value)) {
-            throw Error("Invalid number type, " + current.value + ".")
+            throw Error(String(current.value))
           }
         } else if (current.value === undefined || current.value === null) {
           throw Error("No output value.")
         }
       } catch (e) {
         property.error = {
-          message: "The transformed value was invalid. " + e.message,
+          message: `The transform produced an invalid value: ${+e.message}.`,
           index: property.transforms.length - 1,
         }
         current.value = property.initial.values[property.type]
@@ -449,11 +472,12 @@ export class Property extends PropertyBase {
       initial,
       transforms,
     }
-    if (!tables.properties.has(scope)) {
-      tables.properties.set(scope, new Map([]))
+    if (!tables.properties[scope]) {
+      tables.properties[scope] = {}
     }
 
-    tables.properties.get(scope).set(id, property)
+    tables.properties[scope][id] = property
+
     return property
   }
 }
@@ -486,11 +510,11 @@ export class Variable extends PropertyBase {
       assignments,
     }
 
-    if (!tables.variables.has(scope)) {
-      tables.variables.set(scope, new Map([]))
+    if (!tables.variables[scope]) {
+      tables.variables[scope] = {}
     }
 
-    tables.variables.get(scope).set(id, variable)
+    tables.variables[scope][id] = variable
     return variable
   }
 
@@ -507,17 +531,17 @@ export class Variable extends PropertyBase {
   }
 
   static delete(variable: IVariable) {
-    // Detatch all references
+    // Detach all references
     Object.values(variable.assignments).forEach(({ __type, scope, id }) => {
       const assignment =
         __type === "variable"
-          ? tables.variables.get(scope).get(id)
-          : tables.properties.get(scope).get(id)
+          ? tables.variables[scope][id]
+          : tables.properties[scope][id]
 
-      Initial.detatchVariable(assignment.initial)
+      Initial.detachVariable(assignment.initial)
     })
 
     // Remove from tables
-    tables.variables.get(variable.scope).delete(variable.id)
+    delete tables.variables[variable.scope][variable.id]
   }
 }

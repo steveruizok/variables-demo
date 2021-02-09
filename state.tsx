@@ -1,4 +1,5 @@
 import { createState, createSelectorHook } from "@state-designer/react"
+import { update } from "lodash"
 import { System } from "./lib"
 import {
   Type,
@@ -19,90 +20,69 @@ export type Data = {
   version: number
   theme: "dark" | "light"
   showSource: boolean
-  selected?: System.ScopedReference
+  stack: System.ScopedReference[]
   properties: System.Properties
   variables: System.Variables
 }
 
 export const initialData: Data = {
-  version: 1,
+  version: 16,
   theme: "dark",
   showSource: false,
-  selected: undefined,
-  properties: new Map([
-    [
-      "global",
-      new Map([
-        [
-          "title",
-          Property.create({
-            id: "title",
-            name: "Title",
-            scope: "global",
-            initial: Initial.create({
-              type: Type.Text,
-              value: "Six Headlines to Read in 2021",
-            }),
-          }),
-        ],
-        [
-          "author",
-          Property.create({
-            id: "author",
-            name: "Author",
-            scope: "global",
-            initial: Initial.create({
-              type: Type.Text,
-              value: "Anonymous",
-            }),
-          }),
-        ],
-        [
-          "stars",
-          Property.create({
-            id: "stars",
-            name: "Stars",
-            scope: "global",
-            initial: Initial.create({
-              type: Type.Number,
-              value: 0,
-            }),
-          }),
-        ],
-        [
-          "starred",
-          Property.create({
-            id: "starred",
-            name: "Starred",
-            scope: "global",
-            initial: Initial.create({
-              type: Type.Boolean,
-              value: false,
-            }),
-          }),
-        ],
-      ]),
-    ],
-  ]),
-  variables: new Map([
-    [
-      "global",
-      new Map<string, IVariable>([
-        [
-          "firstName",
-          Variable.create({
-            id: "firstName",
-            scope: "global",
-            name: "First Name",
-            initial: Initial.create({
-              type: Type.Text,
-              value: "Miranda",
-            }),
-          }),
-        ],
-      ]),
-    ],
-  ]),
+  stack: [],
+  properties: {
+    global: {
+      title: Property.create({
+        id: "title",
+        name: "Title",
+        scope: "global",
+        initial: Initial.create({
+          type: Type.Text,
+          value: "Six Headlines to Read in 2021",
+        }),
+      }),
+      author: Property.create({
+        id: "author",
+        name: "Author",
+        scope: "global",
+        initial: Initial.create({
+          type: Type.Text,
+          value: "Anonymous",
+        }),
+      }),
+      stars: Property.create({
+        id: "stars",
+        name: "Stars",
+        scope: "global",
+        initial: Initial.create({
+          type: Type.Number,
+          value: 0,
+        }),
+      }),
+      starred: Property.create({
+        id: "starred",
+        name: "Starred",
+        scope: "global",
+        initial: Initial.create({
+          type: Type.Boolean,
+          value: false,
+        }),
+      }),
+    },
+  },
+  variables: {
+    global: {
+      firstName: Variable.create({
+        id: "firstName",
+        scope: "global",
+        name: "First Name",
+        initial: Initial.create({
+          type: Type.Text,
+          value: "Miranda",
+        }),
+      }),
+    },
+  },
 }
 
 // Load local saved data
@@ -111,48 +91,40 @@ if (typeof window !== "undefined") {
   const local = JSON.parse(localStorage.getItem("play_vars") || "{}")
 
   if (local.version === initialData.version) {
-    const { variables, properties } = initialData
+    for (let key in local.properties) {
+      for (let id in local.properties[key]) {
+        const target = local.properties[key][id]
 
-    variables.clear()
-    properties.clear()
-
-    for (let { name, members } of local.properties) {
-      properties.set(
-        name,
-        new Map(
-          members.map((member) => {
-            member.transforms.forEach((transform: ITransform) => {
-              const source = Transforms.getTransform(transform.name, "temp")
-              transform.fn = source.fn as any
-            })
-            return [member.id, member]
-          })
-        )
-      )
+        target.transforms = target.transforms.map((transform: ITransform) => {
+          const source = Transforms.getTransform(
+            transform.name,
+            transform.scope
+          )
+          return { ...transform, fn: source.fn }
+        })
+      }
     }
 
-    for (let { name, members } of local.variables) {
-      variables.set(
-        name,
-        new Map(
-          members.map((member) => {
-            member.transforms.forEach((transform: ITransform) => {
-              const source = Transforms.getTransform(transform.name, "temp")
-              transform.fn = source.fn as any
-            })
-            return [member.id, member]
-          })
-        )
-      )
+    for (let key in local.variables) {
+      for (let id in local.variables[key]) {
+        const target = local.variables[key][id]
+
+        target.transforms = target.transforms.map((transform: ITransform) => {
+          const source = Transforms.getTransform(
+            transform.name,
+            transform.scope
+          )
+          return { ...transform, fn: source.fn }
+        })
+      }
     }
 
-    System.tables.variables = variables
-    System.tables.properties = properties
-    initialData.theme = local.theme
-    initialData.showSource = local.showSource
-    initialData.selected = local.selected
+    Object.assign(initialData, local)
   }
 }
+
+System.tables.variables = initialData.variables
+System.tables.properties = initialData.properties
 
 const state = createState({
   data: initialData,
@@ -163,7 +135,9 @@ const state = createState({
     RESTORED_PROPERTY: "restoreProperty",
     RESTORED_VARAIBLE: "restoreVariable",
     SELECTED: "select",
+    SELECTED_AT_DEPTH: "selectAtDepth",
     CLEARED_SELECTION: "clearSelectedProperty",
+    CLEARED_STACK: "clearStack",
     CHANGED_NAME: "changeName",
     CHANGED_INITIAL_TYPE: "changeInitialType",
     CHANGED_INITIAL_VALUE: "changeInitialValue",
@@ -173,7 +147,7 @@ const state = createState({
     MOVED_TRANSFORM: "moveTransform",
     DUPLICATED_TRANSFORM: "duplicateTransform",
     SELECTED_VARIABLE: "selectInitialVariable",
-    DETACHED_VARIABLE: "detatchInitialVariable",
+    DETACHED_VARIABLE: "detachInitialVariable",
     CREATED_VARIABLE: "createVariable",
     DELETED_VARIABLE: "deleteVariable",
   },
@@ -193,16 +167,32 @@ const state = createState({
     toggleTheme(data) {
       data.theme = data.theme === "dark" ? "light" : "dark"
     },
-    select(data, payload: { selection: IProperty | IVariable }) {
-      const { selection } = payload
-      data.selected = {
+    selectAtDepth(
+      data,
+      payload: { selection: IProperty | IVariable; depth: number }
+    ) {
+      const { selection, depth } = payload
+      data.stack = data.stack.slice(0, depth)
+      data.stack[depth] = selection
+    },
+    select(
+      data,
+      payload: { selection: IProperty | IVariable; stack: boolean }
+    ) {
+      const { selection, stack } = payload
+      const ref = {
         __type: selection.__type,
         scope: selection.scope,
         id: selection.id,
       }
+
+      data.stack = stack ? [...data.stack, ref] : [ref]
     },
     clearSelectedProperty(data) {
-      data.selected = undefined
+      data.stack.pop()
+    },
+    clearStack(data) {
+      data.stack = []
     },
     changeName(
       _,
@@ -260,13 +250,16 @@ const state = createState({
       )
     },
     removeTransform(
-      _,
+      data,
       payload: {
         property: IProperty | IVariable
         transform: ITransform<Type, Type>
       }
     ) {
       const { property, transform } = payload
+      for (let arg of transform.args) {
+        delete data.properties[property.id][arg.id]
+      }
       Property.removeTransform(property, transform)
     },
     moveTransform(
@@ -292,12 +285,8 @@ const state = createState({
       if (variable) {
         Variable.addAssignment(variable, property)
       } else if (property.initial.variable) {
-        Variable.removeAssignment(
-          data.variables
-            .get(property.initial.variable.scope)
-            .get(property.initial.variable.id),
-          property
-        )
+        const { scope, id } = property.initial.variable
+        Variable.removeAssignment(data.variables[scope][id], property)
       }
 
       Initial.setVariable(
@@ -307,14 +296,14 @@ const state = createState({
           : undefined
       )
     },
-    detatchInitialVariable(
+    detachInitialVariable(
       _,
       payload: {
         property: IProperty | IVariable
       }
     ) {
       const { property } = payload
-      Initial.detatchVariable(property.initial)
+      Initial.detachVariable(property.initial)
     },
     duplicateTransform(
       _,
@@ -325,7 +314,11 @@ const state = createState({
       }
     ) {
       const { property, transform, index } = payload
-      Property.insertTransform(property, transform, index + 1)
+      Property.insertTransform(
+        property,
+        System.Transform.create({ ...transform }),
+        index + 1
+      )
     },
     createVariable(data, payload = { scope: "global" }) {
       const variable = Variable.create({
@@ -336,85 +329,85 @@ const state = createState({
           value: "My Value",
         }),
       })
-      if (!data.variables.has(variable.scope)) {
-        data.variables.set(variable.scope, new Map([]))
+
+      if (!data.variables[variable.scope]) {
+        data.variables[variable.scope] = {}
       }
 
-      data.variables.get(variable.scope).set(variable.id, variable)
-      data.selected = {
-        __type: "variable",
-        scope: variable.scope,
-        id: variable.id,
-      }
+      data.variables[variable.scope][variable.id] = variable
+
+      data.stack = [
+        {
+          __type: "variable",
+          scope: variable.scope,
+          id: variable.id,
+        },
+      ]
     },
     deleteVariable(data, payload: { property: IVariable }) {
-      Variable.delete(payload.property)
+      const { property } = payload
+
+      Object.values(property.assignments).forEach(({ __type, scope, id }) => {
+        const assignment =
+          __type === "variable"
+            ? data.variables.variables[scope][id]
+            : data.variables.properties[scope][id]
+
+        Initial.detachVariable(assignment.initial)
+      })
+
+      // Remove from tables
+      delete data.variables[property.scope][property.id]
+
+      Variable.delete(property)
     },
     restoreProperty(data, property: IProperty) {
-      if (!data.properties.has(property.scope)) {
-        data.variables.set(property.scope, new Map([]))
+      if (!data.variables[property.scope]) {
+        data.properties[property.scope] = {}
       }
-
-      data.properties.get(property.scope).set(property.id, property)
+      data.properties[property.scope][property.id] = property
     },
     restoreVariable(data, variable: IVariable) {
-      if (!data.variables.has(variable.scope)) {
-        data.variables.set(variable.scope, new Map([]))
+      if (!data.variables[variable.scope]) {
+        data.variables[variable.scope] = {}
       }
+      data.variables[variable.scope][variable.id] = variable
 
-      data.variables.get(variable.scope).set(variable.id, variable)
-      data.selected = {
-        __type: "variable",
-        scope: variable.scope,
-        id: variable.id,
-      }
+      data.stack = [
+        {
+          __type: "variable",
+          scope: variable.scope,
+          id: variable.id,
+        },
+      ]
     },
   },
   values: {
     selected(data) {
-      if (!data.selected) return undefined
+      const selection = data.stack[data.stack.length - 1]
+      if (!selection) return
 
-      return data.selected.__type === "variable"
-        ? data.variables.get(data.selected.scope).get(data.selected.id)
-        : data.properties.get(data.selected.scope).get(data.selected.id)
-    },
-    properties(data) {
-      return Array.from(data.properties.entries()).reduce(
-        (acc, [name, properties]) => {
-          acc.push({
-            name,
-            members: Array.from(properties.values()),
-          })
-          return acc
-        },
-        [] as { name: string; members: IProperty[] }[]
-      )
-    },
-    variables(data) {
-      return Array.from(data.variables.entries()).reduce(
-        (acc, [name, variables]) => {
-          acc.push({
-            name,
-            members: Array.from(variables.values()),
-          })
-          return acc
-        },
-        [] as { name: string; members: IVariable[] }[]
-      )
+      return selection.__type === "variable"
+        ? data.variables[selection.scope]?.[selection.id]
+        : data.properties[selection.scope]?.[selection.id]
     },
   },
 })
 
 state.onUpdate((update: typeof state) => {
+  // Lame, but whatever. Alternative is moving everything into the state machine.
+  System.tables.properties = update.data.properties
+  System.tables.variables = update.data.variables
+
   localStorage.setItem(
     "play_vars",
     JSON.stringify({
       theme: update.data.theme,
       showSource: update.data.showSource,
-      selected: update.data.selected,
+      stack: update.data.stack,
       version: update.data.version,
-      properties: update.values.properties,
-      variables: update.values.variables,
+      properties: update.data.properties,
+      variables: update.data.variables,
     })
   )
 })

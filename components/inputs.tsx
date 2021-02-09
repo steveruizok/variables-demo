@@ -4,7 +4,7 @@ import { System } from "lib"
 import VariablePicker from "./variable-picker"
 import TypeIcon from "./type-icon"
 import state from "state"
-import { InputContainer, Button } from "./styled"
+import { InputContainer, Button, Select } from "./styled"
 
 interface InputProps<T = any> {
   disabled?: boolean
@@ -146,7 +146,7 @@ export function EnumInput({
     <InputContainer>
       <TypeIcon type={"enum"} />
       <label>{label}</label>
-      <select
+      <Select
         disabled={disabled}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
@@ -154,7 +154,7 @@ export function EnumInput({
         {options.map((option, i) => (
           <option key={i}>{option}</option>
         ))}
-      </select>
+      </Select>
     </InputContainer>
   )
 }
@@ -181,6 +181,7 @@ export function VariableButton({ variable }: VariableButtonProps) {
   const result = System.getVariable(variable)
   return (
     <StyledVariableButton
+      title="Select variable"
       onClick={() => state.send("SELECTED", { selection: result })}
     >
       {result.name}

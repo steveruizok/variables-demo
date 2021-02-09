@@ -13,7 +13,10 @@ export default function App() {
     <AppContainer>
       <Header>
         <a href="https://github.com/steveruizok/variables-demo">Github</a>
-        <IconButton onClick={() => state.send("TOGGLED_THEME")}>
+        <IconButton
+          onClick={() => state.send("TOGGLED_THEME")}
+          title="Toggle theme"
+        >
           <Sun size={16} />
         </IconButton>
       </Header>
@@ -69,20 +72,20 @@ const AppContainer = styled.div`
     letter-spacing: 0.7px;
     margin: 0;
     opacity: 0.7;
-    padding: var(--spacing-1) var(--spacing-2) 0 var(--spacing-2);
+    padding: 0 var(--spacing-2) 0 var(--spacing-2);
 
-    ::after {
+    /* ::after {
       display: block;
       content: "";
       border-bottom: 1px solid var(--color-border-0);
       position: relative;
       top: calc(-0.75 * var(--size-0));
       margin: 0 calc(-1 * var(--spacing-4));
-    }
+    } */
   }
 
   hr {
-    margin: var(--spacing-1) calc(-1 * var(--spacing-2)) var(--spacing-3)
+    margin: var(--spacing-1) calc(-1 * var(--spacing-2)) var(--spacing-1)
       calc(-1 * var(--spacing-2));
     border: none;
     border-top: 1px solid var(--color-border-0);
@@ -120,6 +123,7 @@ const AppContainer = styled.div`
   select {
     cursor: pointer;
     height: var(--size-3);
+    appearance: none;
 
     &:disabled {
       border: 1px solid var(--color-surface-1);
@@ -185,17 +189,6 @@ const AppContainer = styled.div`
       border: 1px solid var(--color-border-1);
       border-radius: var(--radius-0);
     }
-    /* 
-    &:checked::after {
-      content: "";
-      box-sizing: border-box;
-      display: block;
-      height: var(--spacing-4);
-      width: var(--spacing-4);
-      background-color: var(--color-shade-0);
-      border: 1px solid var(--color-text);
-      border-radius: var(--radius-0);
-    } */
   }
 
   // Lists

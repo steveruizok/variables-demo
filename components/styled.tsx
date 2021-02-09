@@ -8,6 +8,12 @@ export const Panel = styled.div`
   background-color: var(--color-surface-0);
 `
 
+export const PanelStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+`
+
 export const PanelBody = styled.div`
   padding: var(--spacing-3) var(--spacing-2);
   display: grid;
@@ -118,3 +124,5 @@ export const IconSelect = styled.div`
     pointer-events: none;
   }
 `
+
+export const Select = styled.select``

@@ -68,6 +68,7 @@ function PropertyButton({
 }) {
   return (
     <StyledButton
+      title="Select property"
       isActive={isActive}
       hasError={!!property.error}
       onClick={() =>

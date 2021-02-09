@@ -18,14 +18,16 @@ import { coerceValue } from "./utils"
 export type Data = {
   version: number
   theme: "dark" | "light"
+  showSource: boolean
   selected?: System.ScopedReference
   properties: System.Properties
   variables: System.Variables
 }
 
 export const initialData: Data = {
-  version: 35,
+  version: 1,
   theme: "dark",
+  showSource: false,
   selected: undefined,
   properties: new Map([
     [
@@ -86,18 +88,18 @@ export const initialData: Data = {
     [
       "global",
       new Map<string, IVariable>([
-        // [
-        //   "firstName",
-        //   Variable.create({
-        //     id: "firstName",
-        //     scope: "global",
-        //     name: "Starred",
-        //     initial: Initial.create({
-        //       type: Type.Boolean,
-        //       value: false,
-        //     }),
-        //   }),
-        // ],
+        [
+          "firstName",
+          Variable.create({
+            id: "firstName",
+            scope: "global",
+            name: "First Name",
+            initial: Initial.create({
+              type: Type.Text,
+              value: "Miranda",
+            }),
+          }),
+        ],
       ]),
     ],
   ]),
@@ -147,6 +149,7 @@ if (typeof window !== "undefined") {
     System.tables.variables = variables
     System.tables.properties = properties
     initialData.theme = local.theme
+    initialData.showSource = local.showSource
     initialData.selected = local.selected
   }
 }
@@ -155,6 +158,7 @@ const state = createState({
   data: initialData,
   onEnter: "setTheme",
   on: {
+    TOGGLED_SHOW_SOURCE: "toggleShowSource",
     TOGGLED_THEME: ["toggleTheme", "setTheme"],
     RESTORED_PROPERTY: "restoreProperty",
     RESTORED_VARAIBLE: "restoreVariable",
@@ -174,6 +178,9 @@ const state = createState({
     DELETED_VARIABLE: "deleteVariable",
   },
   actions: {
+    toggleShowSource(data) {
+      data.showSource = !data.showSource
+    },
     setTheme(data) {
       if (typeof document !== "undefined") {
         if (data.theme === "dark") {
@@ -403,6 +410,7 @@ state.onUpdate((update: typeof state) => {
     "play_vars",
     JSON.stringify({
       theme: update.data.theme,
+      showSource: update.data.showSource,
       selected: update.data.selected,
       version: update.data.version,
       properties: update.values.properties,

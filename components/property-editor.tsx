@@ -7,7 +7,6 @@ import TransformPicker from "./transform-picker"
 import { PropertyInput, EnumInput } from "./inputs"
 import { coerceValue } from "utils"
 import { PanelBody, InputsContainer } from "./styled"
-import Pre from "./pre"
 
 interface PropertyEditorProps {
   property: System.IProperty | System.IVariable
@@ -31,6 +30,7 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
           onChange={(name) => state.send("CHANGED_NAME", { property, name })}
         />
       </InputsContainer>
+      <hr />
       <h3>Initial Value</h3>
       <InputsContainer>
         <EnumInput
@@ -80,6 +80,7 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
           }
         />
       </InputsContainer>
+      <hr />
       <h3>Transforms</h3>
       {property.transforms.length > 0 && (
         <ul>
@@ -120,6 +121,7 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
           })
         }
       />
+      <hr />
       <h3>Final Value</h3>
       <InputsContainer>
         <PropertyInput
@@ -129,9 +131,20 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
           showVariables={false}
         />
       </InputsContainer>
-      {property.error && <p>Error: {property.error.message}</p>}
-      {property.warning && <p>Warning: {property.warning.message}</p>}
-      <Pre source={property} />
+      {property.error && (
+        <>
+          <hr />
+          <h3>Error</h3>
+          <p>{property.error.message}</p>
+        </>
+      )}
+      {property.warning && (
+        <>
+          <hr />
+          <h3>Warning</h3>
+          <p>{property.warning.message}</p>
+        </>
+      )}
     </PanelBody>
   )
 }

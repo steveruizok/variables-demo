@@ -1,8 +1,7 @@
 /* eslint-disable */
 import * as React from "react"
 import { VariablesList, PropertiesList } from "./lists"
-import { Panel, PanelBody, PanelHeader, Button } from "./styled"
-import styled from "styled-components"
+import { Panel, PanelStack, PanelBody, PanelHeader, Button } from "./styled"
 import state from "state"
 
 export default function ContentPanel() {
@@ -23,7 +22,10 @@ export default function ContentPanel() {
         <PanelBody>
           <VariablesList />
           <hr />
-          <Button onClick={() => state.send("CREATED_VARIABLE")}>
+          <Button
+            title="Create new variable"
+            onClick={() => state.send("CREATED_VARIABLE")}
+          >
             Create New Variable
           </Button>
         </PanelBody>
@@ -31,9 +33,3 @@ export default function ContentPanel() {
     </PanelStack>
   )
 }
-
-const PanelStack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-`

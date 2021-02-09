@@ -186,7 +186,7 @@ export class Transform {
     outputType: O
     scope: string
     fn: TransformFn<I, O>
-    args?: (IProperty | IEnumerated)[]
+    args?: (IProperty | IEnumerated | ScopedReference)[]
   }): ITransform<I, O> {
     const {
       id = uniqueId(String(Date.now())),
@@ -203,11 +203,13 @@ export class Transform {
       args: args.map((arg) =>
         arg.__type === "enumerated"
           ? arg
-          : {
+          : "name" in arg
+          ? {
               __type: arg.__type,
               id: arg.id,
               scope: (arg as IProperty).scope,
             }
+          : arg
       ),
       ...rest,
     }

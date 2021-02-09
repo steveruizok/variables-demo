@@ -1,8 +1,9 @@
 import { System } from "lib"
 import * as React from "react"
-import styled from "styled-components"
 import { useStateDesigner } from "@state-designer/react"
 import state from "state"
+import styled from "styled-components"
+import { Button } from "./styled"
 import TypeIcon from "./type-icon"
 
 export function PropertiesList() {
@@ -93,24 +94,8 @@ function PropertyButton({
   )
 }
 
-const StyledButton = styled.button<{
-  hasError?: boolean
-  isActive: boolean
-}>`
-  position: relative;
-  display: grid;
+export const StyledButton = styled(Button)`
   grid-template-columns: auto 1fr minmax(0, auto);
   grid-gap: var(--spacing-1);
-  align-items: center;
   text-align: left;
-  overflow: hidden;
-  width: 100%;
-  white-space: nowrap;
-  border-radius: var(--radius-2);
-  background-color: ${({ hasError, isActive }) =>
-    hasError
-      ? "var(--color-error-0)"
-      : isActive
-      ? "var(--color-active-background)"
-      : "var(--color-input)"} !important;
 `

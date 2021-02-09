@@ -93,23 +93,14 @@ export default function PreviewPanel() {
 }
 
 const PreviewContainer = styled(Panel)`
-  background-color: var(--color-input);
-`
-
-const Selectable = styled.button<{ isActive: boolean }>`
-  all: unset !important;
-  cursor: pointer !important;
-  outline: ${({ isActive }) =>
-    isActive ? "1px solid var(--color-active) !important" : "auto"};
-  &:hover {
-    outline: 1px solid var(--color-active) !important;
-  }
+  background-color: var(--color-surface-1);
 `
 
 const InnerContainer = styled(PanelBody)`
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: var(--spacing-4);
+  height: 280px;
 `
 
 const CardContainer = styled(Panel)`
@@ -125,4 +116,14 @@ const DetailsRow = styled.div`
   grid-template-columns: 1fr auto auto;
   grid-gap: var(--spacing-1);
   align-items: center;
+`
+
+const Selectable = styled.button<{ isActive: boolean }>`
+  all: unset !important;
+  cursor: pointer !important;
+  outline: ${({ isActive }) =>
+    isActive ? "1px solid var(--color-selection) !important" : "auto"};
+  &:hover {
+    outline: 1px solid var(--color-selection) !important;
+  }
 `

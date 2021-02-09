@@ -24,7 +24,7 @@ export type Data = {
 }
 
 export const initialData: Data = {
-  version: 34,
+  version: 35,
   theme: "dark",
   selected: undefined,
   properties: new Map([
@@ -175,10 +175,12 @@ const state = createState({
   },
   actions: {
     setTheme(data) {
-      if (data.theme === "dark") {
-        document.body.classList.toggle("dark", true)
-      } else {
-        document.body.classList.toggle("dark", false)
+      if (typeof document !== "undefined") {
+        if (data.theme === "dark") {
+          document.body.classList.toggle("dark", true)
+        } else {
+          document.body.classList.toggle("dark", false)
+        }
       }
     },
     toggleTheme(data) {

@@ -4,9 +4,9 @@ import { System } from "lib"
 import state from "state"
 import Transform from "./transform"
 import TransformPicker from "./transform-picker"
-import { RawTextInput, PropertyInput, EnumInput } from "./inputs"
+import { PropertyInput, EnumInput } from "./inputs"
 import { coerceValue } from "utils"
-import { PanelBody } from "./styled"
+import { PanelBody, InputsContainer } from "./styled"
 import Pre from "./pre"
 
 interface PropertyEditorProps {
@@ -82,36 +82,34 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
       </InputsContainer>
       <h3>Transforms</h3>
       {property.transforms.length > 0 && (
-        <TransformsList>
-          <ul>
-            {property.transforms.map((transform, index) => {
-              const status = property.error
-                ? property.error.index >= 0
-                  ? property.error.index === index
-                    ? "error"
-                    : property.error.index < index
-                    ? "warn"
-                    : "ok"
+        <ul>
+          {property.transforms.map((transform, index) => {
+            const status = property.error
+              ? property.error.index >= 0
+                ? property.error.index === index
+                  ? "error"
+                  : property.error.index < index
+                  ? "warn"
                   : "ok"
                 : "ok"
+              : "ok"
 
-              return (
-                <Transform
-                  key={transform.id}
-                  transform={transform}
-                  property={property}
-                  status={status}
-                  index={index}
-                  excludeVariable={{
-                    __type: "variable",
-                    scope: property.scope,
-                    id: property.id,
-                  }}
-                />
-              )
-            })}
-          </ul>
-        </TransformsList>
+            return (
+              <Transform
+                key={transform.id}
+                transform={transform}
+                property={property}
+                status={status}
+                index={index}
+                excludeVariable={{
+                  __type: "variable",
+                  scope: property.scope,
+                  id: property.id,
+                }}
+              />
+            )
+          })}
+        </ul>
       )}
       <TransformPicker
         inputType={addTransformType}
@@ -125,8 +123,8 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
       <h3>Final Value</h3>
       <InputsContainer>
         <PropertyInput
-          label={System.Property.getType(property)}
-          value={String(System.Property.getValue(property))}
+          label={""}
+          value={System.Property.getValue(property)}
           readOnly
           showVariables={false}
         />
@@ -137,12 +135,3 @@ export default function PropertyEditor({ property }: PropertyEditorProps) {
     </PanelBody>
   )
 }
-
-const TransformsList = styled.div``
-
-const InputsContainer = styled.div`
-  border: 1px solid var(--color-border);
-  background-color: var(--color-input);
-  border-radius: var(--radius-2);
-  grid-auto-columns: 1fr;
-`

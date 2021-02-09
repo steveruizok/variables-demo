@@ -71,7 +71,13 @@ export class Initial {
     }
   }
 
-  static getType(value: IInitial) {
+  static getType(value: IInitial, visited: string[] = []) {
+    if (value.variable) {
+      if (visited.includes(value.variable.id)) {
+        throw Error("Found a reference loop!")
+      }
+      return Variable.getType(getVariable(value.variable), visited)
+    }
     return value.type
   }
 
@@ -283,16 +289,32 @@ export class PropertyBase {
     return property
   }
 
-  static getTransformedType(property: IProperty | IVariable): Type {
-    return property.transforms.length > 0
-      ? (property.transforms[property.transforms.length - 1].outputType as Type)
-      : property.initial.variable
-      ? Property.getTransformedType(getVariable(property.initial.variable))
-      : Initial.getType(property.initial)
+  static getTransformedType(
+    property: IProperty | IVariable,
+    visited: string[] = []
+  ): Type {
+    if (property.transforms.length > 0) {
+      return property.transforms[property.transforms.length - 1]
+        .outputType as Type
+    }
+
+    if (property.initial.variable) {
+      if (visited.includes(property.id)) {
+        property.error = { index: -1, message: "Reference loop detected!" }
+        return Initial.getType(property.initial)
+      }
+
+      return Property.getTransformedType(
+        getVariable(property.initial.variable),
+        [...visited, property.id]
+      )
+    }
+
+    return Initial.getType(property.initial, [...visited, property.id])
   }
 
-  static getType(property: IProperty | IVariable) {
-    return Initial.getType(property.initial)
+  static getType(property: IProperty | IVariable, visited: string[] = []) {
+    return Initial.getType(property.initial, [...visited, property.id])
   }
 
   static getValue(

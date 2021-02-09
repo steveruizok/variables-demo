@@ -6,15 +6,16 @@ import PreviewPanel from "components/preview-panel"
 import ContentPanel from "components/content-panel"
 import { Sun } from "react-feather"
 import state from "state"
+import { IconButton } from "./styled"
 
 export default function App() {
   return (
     <AppContainer>
       <Header>
         <a href="https://github.com/steveruizok/variables-demo">Github</a>
-        <button onClick={() => state.send("TOGGLED_THEME")}>
+        <IconButton onClick={() => state.send("TOGGLED_THEME")}>
           <Sun size={16} />
-        </button>
+        </IconButton>
       </Header>
       <PanelsContainer>
         <PreviewPanel />
@@ -35,8 +36,6 @@ const Panels = styled.div`
 `
 
 const PanelsContainer = styled.div`
-  max-width: 900px;
-  margin: 0 auto;
   display: grid;
   grid-auto-columns: 1fr;
   grid-gap: var(--spacing-4);
@@ -50,8 +49,12 @@ const Header = styled.div`
 `
 
 const AppContainer = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
   font-family: sans-serif;
   font-size: var(--size-2);
+  line-height: 1.3;
+  margin-bottom: 128px;
 
   h2 {
     font-size: var(--size-2);
@@ -60,85 +63,105 @@ const AppContainer = styled.div`
   }
 
   h3 {
-    font-size: var(--size-1);
+    font-size: var(--size-0);
+    font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.7px;
     margin: 0;
-    padding: 0;
-    padding-top: var(--spacing-1);
     opacity: 0.7;
+    padding: var(--spacing-1) var(--spacing-2) 0 var(--spacing-2);
+
+    ::after {
+      display: block;
+      content: "";
+      border-bottom: 1px solid var(--color-border-0);
+      position: relative;
+      top: calc(-0.75 * var(--size-0));
+      margin: 0 calc(-1 * var(--spacing-4));
+    }
   }
 
   hr {
-    margin: var(--spacing-1) -var(--spacing-1) var(--spacing-3) -var(
-        --spacing-1
-      );
+    margin: var(--spacing-1) calc(-1 * var(--spacing-2)) var(--spacing-3)
+      calc(-1 * var(--spacing-2));
     border: none;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border-0);
   }
 
   a {
     color: var(--color-text);
   }
 
+  // Inputs (general)
+
   input,
   select,
   button,
   textarea {
-    color: var(--color-text);
-    height: var(--height-input);
-    font-family: sans-serif;
-    line-height: 1.3;
-    font-size: var(--size-2);
-    border: 1px solid var(--color-border);
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
     border-radius: var(--radius-2);
-    min-height: var(--height-input);
+    &:focus {
+      outline: none;
+      border: 1px solid var(--color-selection);
+    }
   }
 
-  button,
+  input,
+  select {
+    background-color: var(--color-surface-3);
+    padding: 0px var(--spacing-2);
+    border: 1px solid var(--color-border-1);
+  }
+
+  // Select (enum)
+
   select {
     cursor: pointer;
-    background-color: var(--color-input);
-    &:active {
-      background-color: var(--color-active-background);
+    height: var(--size-3);
+
+    &:disabled {
+      border: 1px solid var(--color-surface-1);
+      background-color: transparent;
+    }
+
+    &:hover:not(:disabled) {
+      border: 1px solid var(--color-border-2);
     }
   }
 
-  pre {
-    font-weight: 500;
-    overflow: scroll;
-    border-radius: var(--radius-2);
-    font-size: var(--size-1);
-
-    code {
-      font-family: "Roboto Mono", monospace;
-    }
-  }
-
-  input,
-  button {
-    padding: 0px var(--spacing-2);
-  }
-
-  textarea:read-only,
-  textarea:disabled {
-    border: 1px solid var(--color-input);
-  }
-
-  input,
-  select,
-  textarea {
-    background-color: var(--color-background);
-  }
-
-  select {
-    padding: 0px var(--spacing-1);
-  }
+  // Text
 
   textarea {
-    padding: var(--spacing-1-5);
+    border: 1px solid var(--color-border-1);
+    padding: var(--spacing-1-5) var(--spacing-2);
+    background-color: var(--color-surface-3);
     resize: none;
+    line-height: 1.3;
+    height: var(--size-3);
+
+    &:read-only,
+    :disabled {
+      border: 1px solid transparent;
+      background-color: transparent;
+    }
+    :hover:enabled:not(:read-only) {
+      border: 1px solid var(--color-border-2);
+    }
   }
+
+  // Number
+
+  input[type="number"] {
+    text-align: right;
+    height: var(--size-3);
+    :hover:enabled:not(:read-only) {
+      border: 1px solid var(--color-border-2);
+    }
+  }
+
+  // Checkbox (boolean)
 
   input[type="checkbox"] {
     display: flex;
@@ -148,31 +171,34 @@ const AppContainer = styled.div`
     padding: 0;
     margin: 0;
     cursor: pointer;
+    &:hover:not(:checked)::after {
+      border: 1px solid var(--color-border-2);
+    }
 
-    &::after {
+    &:not(:checked)::after {
       content: "";
       box-sizing: border-box;
       display: block;
       height: var(--spacing-4);
       width: var(--spacing-4);
-      background-color: var(--color-background);
-      border: 1px solid var(--color-text);
+      background-color: var(--color-surface-3);
+      border: 1px solid var(--color-border-1);
       border-radius: var(--radius-0);
     }
-
-    &:checked {
-      &::after {
-        content: "";
-        box-sizing: border-box;
-        display: block;
-        height: var(--spacing-4);
-        width: var(--spacing-4);
-        background-color: var(--color-shade-0);
-        border: 1px solid var(--color-text);
-        border-radius: var(--radius-0);
-      }
-    }
+    /* 
+    &:checked::after {
+      content: "";
+      box-sizing: border-box;
+      display: block;
+      height: var(--spacing-4);
+      width: var(--spacing-4);
+      background-color: var(--color-shade-0);
+      border: 1px solid var(--color-text);
+      border-radius: var(--radius-0);
+    } */
   }
+
+  // Lists
 
   ul {
     list-style-type: none;
@@ -181,5 +207,20 @@ const AppContainer = styled.div`
     margin: 0;
     padding: 0;
     gap: var(--spacing-1);
+  }
+
+  & pre {
+    font-weight: 500;
+    overflow: scroll;
+    border-radius: var(--radius-2);
+    font-size: var(--size-1);
+    font-family: "Roboto Mono", monospace;
+    line-height: 1.5;
+  }
+
+  & code {
+    line-height: inherit;
+    font-size: inherit;
+    font-family: inherit;
   }
 `

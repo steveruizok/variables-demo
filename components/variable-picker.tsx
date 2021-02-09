@@ -1,7 +1,9 @@
 import styled from "styled-components"
 import { System } from "lib"
 import * as React from "react"
+import { IconSelect } from "./styled"
 import { useSelector } from "state"
+import { Radio } from "react-feather"
 
 interface VariablePickerProps {
   type?: System.Type
@@ -26,7 +28,7 @@ export default function VariablePicker({
   )
 
   return (
-    <SelectWrapper hasVariable={!!id}>
+    <IconSelect>
       <select
         value={id || ""}
         onChange={({ currentTarget: { value } }) => {
@@ -52,33 +54,7 @@ export default function VariablePicker({
           </option>
         ))}
       </select>
-      <div>{"{ }"}</div>
-    </SelectWrapper>
+      <Radio size={16} />
+    </IconSelect>
   )
 }
-
-const SelectWrapper = styled.div<{ hasVariable: boolean }>`
-  height: var(--height-input);
-  width: var(--height-input);
-  background-color: var(--color-input);
-  border: 1px solid var(--color-shade-0);
-  border-radius: var(--radius-2);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  & > select {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-  }
-
-  & > div {
-    pointer-events: none;
-  }
-`

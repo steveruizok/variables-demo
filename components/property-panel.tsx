@@ -2,7 +2,7 @@ import * as React from "react"
 import styled from "styled-components"
 import state from "state"
 import PropertyEditor from "./property-editor"
-import { Panel, PanelBody, PanelHeader } from "./styled"
+import { Panel, PanelBody, PanelHeader, IconButton } from "./styled"
 import { useStateDesigner } from "@state-designer/react"
 import { Trash, X } from "react-feather"
 
@@ -21,17 +21,17 @@ export default function PropertyPanel() {
         {selected && (
           <ButtonRow>
             {selected.__type === "variable" && (
-              <button
+              <IconButton
                 onClick={() =>
                   state.send("DELETED_VARIABLE", { property: selected })
                 }
               >
                 <Trash size={16} />
-              </button>
+              </IconButton>
             )}
-            <button onClick={() => state.send("CLEARED_SELECTION")}>
+            <IconButton onClick={() => state.send("CLEARED_SELECTION")}>
               <X size={16} />
-            </button>
+            </IconButton>
           </ButtonRow>
         )}
       </PanelHeader>
@@ -46,12 +46,4 @@ export default function PropertyPanel() {
 
 const ButtonRow = styled.div`
   display: flex;
-  gap: var(--spacing-1);
-
-  & button {
-    background-color: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 `

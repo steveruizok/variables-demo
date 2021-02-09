@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap");
 
+* {
+  box-sizing: border-box;
+}
+
 :root {
   --spacing-0: 4px;
   --spacing-1: 8px;
@@ -10,49 +14,47 @@
   --size-0: 12px;
   --size-1: 14px;
   --size-2: 16px;
+  --size-3: 40px;
+  --size-4: 56px;
   --radius-0: 2px;
   --radius-2: 4px;
   --radius-3: 8px;
-  --color-text: black;
-  --color-background: white;
-  --color-panel: #fcfcfc;
-  --color-border: rgba(144, 144, 144, 0.5);
-  --color-active: blue;
-  --color-active-background: rgb(226, 231, 255);
-  --color-transformed: rgb(77, 131, 231);
-  --color-variable: magenta;
-  --color-input: #f3f3f3;
-  --color-shade-0: #767676;
+  --color-text: rgb(32, 32, 32);
+  --color-background: rgb(237, 236, 240);
+  --color-surface-0: rgba(10, 0, 0, 0.02);
+  --color-surface-1: rgba(10, 0, 0, 0.04);
+  --color-surface-2: rgba(10, 0, 0, 0.08);
+  --color-surface-3: rgba(255, 255, 255, 0.8);
+  --color-border-0: rgba(6, 16, 16, 0.12);
+  --color-border-1: rgba(6, 16, 16, 0.2);
+  --color-border-2: rgba(6, 16, 16, 0.5);
+  --color-shade-0: rgb(0, 0, 0, 0.02);
   --color-shadow-0: rgba(0, 0, 0, 0.05);
   --color-shadow-1: rgba(255, 255, 255, 0.2);
+  --color-selection: rgb(22, 115, 221);
+  --color-transformed: rgb(77, 131, 231);
+  --color-variable: rgb(216, 68, 216);
   --color-error-0: rgba(255, 100, 100, 0.5);
   --color-error-1: rgba(255, 100, 100, 0.25);
-  --height-input: 40px;
 }
 
 .dark {
   --color-text: rgb(235, 235, 235);
-  --color-background: rgb(20, 20, 20);
-  --color-panel: rgb(32, 29, 36);
-  --color-border: rgba(206, 206, 206, 0.5);
-  --color-active: rgb(111, 111, 236);
-  --color-active-background: rgb(88, 89, 97);
-  --color-transformed: rgb(77, 131, 231);
-  --color-variable: magenta;
-  --color-input: #323038;
-  --color-shade-0: #767676;
-  --color-shadow-0: rgba(0, 0, 0, 0.05);
+  --color-background: rgb(20, 20, 21);
+  --color-surface-0: rgba(220, 196, 230, 0.05);
+  --color-surface-1: rgba(205, 196, 230, 0.05);
+  --color-surface-2: rgba(205, 196, 230, 0.25);
+  --color-surface-3: rgba(20, 20, 21, 0.8);
+  --color-border-0: rgba(206, 206, 206, 0.12);
+  --color-border-1: rgba(206, 206, 206, 0.2);
+  --color-border-2: rgba(206, 206, 206, 0.5);
+  --color-shade-0: rgb(255, 255, 255, 0.02);
+  --color-shadow-0: rgba(20, 20, 21, 0.2);
   --color-shadow-1: rgba(255, 255, 255, 0.2);
-  --color-error-0: rgba(255, 100, 100, 0.5);
-  --color-error-1: rgba(255, 100, 100, 0.25);
-  --height-input: 40px;
+  --color-shadow-2: rgba(255, 255, 255, 0.1);
 }
 
 body {
   color: var(--color-text);
   background-color: var(--color-background);
-}
-
-* {
-  box-sizing: border-box;
 }

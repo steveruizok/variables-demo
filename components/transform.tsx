@@ -105,10 +105,10 @@ const TransformContainer = styled(Panel)<{ status: "ok" | "error" | "warn" }>`
       ? "var(--color-error-0)"
       : status === "warn"
       ? "var(--color-error-1)"
-      : "var(--color-input)"};
+      : "var(--color-surface-1)"};
 
   li {
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border-0);
   }
 
   li > div {
@@ -123,7 +123,7 @@ const TransformHeader = styled(PanelHeader)`
   grid-auto-flow: column;
   grid-template-columns: 1fr;
   grid-auto-columns: auto;
-  padding: var(--spacing-1) var(--spacing-3);
+  padding: var(--spacing-1) var(--spacing-2);
   gap: var(--spacing-1);
 
   * {
@@ -147,7 +147,7 @@ const ErrorMessage = styled.p`
   padding: var(--spacing-1) var(--spacing-2) var(--spacing-2) var(--spacing-2);
   margin: 0;
   text-align: center;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border-0);
 `
 
 const TypeIcons = styled.div`

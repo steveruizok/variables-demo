@@ -1,29 +1,39 @@
 /* eslint-disable */
 import * as React from "react"
 import { VariablesList, PropertiesList } from "./lists"
-import { Panel, PanelBody, PanelHeader } from "./styled"
+import { Panel, PanelBody, PanelHeader, Button } from "./styled"
 import styled from "styled-components"
 import state from "state"
 
 export default function ContentPanel() {
   return (
-    <Panel>
-      <PanelHeader>
-        <h2>Content</h2>
-      </PanelHeader>
-      <PanelBody>
-        <h3>Properties</h3>
-        <PropertiesList />
-        <h3>Variables</h3>
-        <VariablesList />
-        <AddNewButton onClick={() => state.send("CREATED_VARIABLE")}>
-          Create New Variable
-        </AddNewButton>
-      </PanelBody>
-    </Panel>
+    <PanelStack>
+      <Panel>
+        <PanelHeader>
+          <h2>Properties</h2>
+        </PanelHeader>
+        <PanelBody>
+          <PropertiesList />
+        </PanelBody>
+      </Panel>
+      <Panel>
+        <PanelHeader>
+          <h2>Variables</h2>
+        </PanelHeader>
+        <PanelBody>
+          <VariablesList />
+          <hr />
+          <Button onClick={() => state.send("CREATED_VARIABLE")}>
+            Create New Variable
+          </Button>
+        </PanelBody>
+      </Panel>
+    </PanelStack>
   )
 }
 
-const AddNewButton = styled.button`
-  width: 100%;
+const PanelStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
 `

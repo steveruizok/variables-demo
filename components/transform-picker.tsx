@@ -1,5 +1,4 @@
 /* eslint-disable */
-import styled from "styled-components"
 import { System } from "lib"
 import * as Transforms from "../lib/transforms"
 
@@ -13,7 +12,7 @@ export default function TransformPicker({
   onSelect,
 }: TransformPickerProps) {
   return (
-    <TransformSelect
+    <select
       value={"default"}
       onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
         onSelect(e.target.value as Transforms.TransformName)
@@ -31,10 +30,6 @@ export default function TransformPicker({
           </optgroup>
         )
       )}
-    </TransformSelect>
+    </select>
   )
 }
-
-const TransformSelect = styled.select`
-  width: 100%;
-`

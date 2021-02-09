@@ -4,6 +4,7 @@ import { System } from "lib"
 import VariablePicker from "./variable-picker"
 import TypeIcon from "./type-icon"
 import state from "state"
+import { InputContainer, Button } from "./styled"
 
 interface InputProps<T = any> {
   disabled?: boolean
@@ -117,13 +118,15 @@ function BooleanInput({
   onChange,
 }: InputProps<System.ValueTypes[System.Type.Boolean]>) {
   return (
-    <input
-      type="checkbox"
-      disabled={disabled}
-      readOnly={readOnly}
-      checked={value}
-      onChange={(e) => onChange?.(Boolean(e.target.checked))}
-    />
+    <BooleanInputContainer>
+      <input
+        type="checkbox"
+        disabled={disabled}
+        readOnly={readOnly}
+        checked={value}
+        onChange={(e) => onChange?.(Boolean(e.target.checked))}
+      />
+    </BooleanInputContainer>
   )
 }
 
@@ -185,20 +188,15 @@ export function VariableButton({ variable }: VariableButtonProps) {
   )
 }
 
-const StyledVariableButton = styled.button`
+const StyledVariableButton = styled(Button)`
   text-align: left;
+  padding: var(--spacing-1-5) var(--spacing-2);
+  height: var(--size-3);
+  background-color: var(--color-surface-1);
+  color: var(--color-variable) !important;
 `
 
-const InputContainer = styled.div`
-  display: grid;
-  padding: var(--spacing-3);
-  align-items: center;
-  grid-template-columns: auto 80px minmax(0, 1fr);
-  grid-auto-columns: auto;
-  grid-auto-flow: column;
-  grid-gap: var(--spacing-1);
-
-  &:nth-of-type(n + 2) {
-    border-top: 1px solid var(--color-border);
-  }
+const BooleanInputContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
 `

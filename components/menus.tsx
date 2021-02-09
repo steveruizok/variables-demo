@@ -1,7 +1,8 @@
 /* eslint-disable */
-import styled from "styled-components"
 import { System } from "lib"
-import state, { useSelector } from "state"
+import { IconSelect } from "./styled"
+import { MoreHorizontal } from "react-feather"
+import state from "state"
 
 interface TransformMenuProps {
   property: System.IProperty | System.IVariable
@@ -15,7 +16,7 @@ export function TransformMenu({
   index,
 }: TransformMenuProps) {
   return (
-    <SelectWrapper>
+    <IconSelect>
       <select
         value={""}
         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -64,33 +65,7 @@ export function TransformMenu({
         <option>Duplicate</option>
         <option>Delete</option>
       </select>
-      <div>{"..."}</div>
-    </SelectWrapper>
+      <MoreHorizontal size={16} />
+    </IconSelect>
   )
 }
-
-const SelectWrapper = styled.div`
-  height: var(--height-input);
-  width: var(--height-input);
-  background-color: var(--color-input);
-  border: 1px solid var(--color-shade-0);
-  border-radius: var(--radius-2);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  & > select {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-  }
-
-  & > div {
-    pointer-events: none;
-  }
-`
